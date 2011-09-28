@@ -42,23 +42,24 @@ public class MPOLoader {
 		System.out.printf("%x\n", app2);
 		// オフセットの基準点
 		int offsetBase = app2 + ENDIAN_OFFSET_SIZE;
+		System.out.printf("Offset Base: %x\n", offsetBase);
 
 		// 先頭IFDへのオフセットを取得
 		int offset = getIFDOffset(fileData, offsetBase);
 		MPIndexFields indexIFD = MPIndexFields.create(fileData, offsetBase
 				+ offset);
+		System.out.printf("%x\n", MPIndexFields.MPF_LENGTH + offsetBase
+				+ offset);
 		System.out.println("記録画像数:" + indexIFD.getNumberOfImages());
 
-		// (offsetBase + offset) // Count
-		// (offsetBase + offset + 2) // MPFVersion
-		// (offsetBase + offset + 14) // NumberOfImage
-		int numOfImage = getInt(fileData, offsetBase + offset + 14 + 8);
-		System.out.println("Number of Images " + numOfImage);
-		// (offsetBase + offset + 26) // MPEntry(16Byte)
-		System.out.println(offset);
-		MPEntry entry = new MPEntry(fileData, offsetBase + offset + 26);
+		MPEntry entry = indexIFD.getMPEntry();
 		System.out.printf("%d\n", entry.getSize());
 		System.out.printf("%x\n", entry.getOffset());
+
+		int individualOffset = indexIFD.getOffsetOfNextIFD();
+		System.out.printf("%x\n", individualOffset);
+		System.out.printf("%x\n", individualOffset + offsetBase);
+
 		MPEntry entry1 = new MPEntry(fileData, entry.getOffset() + offsetBase);
 		System.out.printf("%x\n", entry1.getOffset());
 

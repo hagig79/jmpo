@@ -1,3 +1,4 @@
+package jp.skr.soundwing.mpo;
 import java.io.File;
 import java.io.FileInputStream;
 
@@ -19,4 +20,5 @@ public class MPOLoaderTest {
 		// verify
 		assertNotNull(image);
 	}
+
 }
