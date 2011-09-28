@@ -1,6 +1,5 @@
 package jp.skr.soundwing.mpo;
 
-
 /**
  * MPインデックスIFD.
  * 
@@ -26,7 +25,7 @@ public class MPIndexFields {
 	static final int MPF_LENGTH = COUNT_LENGTH + VERSION_LENGTH + N_LENGTH
 			+ ENTRY_LENGTH + UNIQUE_LENGTH + KOMA_LENGTH
 			+ OFFSET_OF_NEXT_IFD_LENGTH;
-	private static final int INTEGER_SIZE = 4;
+	static final int INTEGER_SIZE = 4;
 
 	static final byte[] VERSION_TAG = { (byte) 0xb0, 0x00 };
 	private static final byte[] NUMBER_OF_IMAGES_TAG = { (byte) 0xb0, 0x01 };
@@ -94,7 +93,7 @@ public class MPIndexFields {
 		return mpf;
 	}
 
-	private static boolean startsWith(byte[] array, int offset, byte[] subarray) {
+	static boolean startsWith(byte[] array, int offset, byte[] subarray) {
 		for (int i = 0; i < subarray.length; i++) {
 			if (array[i + offset] != subarray[i]) {
 				return false;

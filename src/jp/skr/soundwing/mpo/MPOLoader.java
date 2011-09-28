@@ -45,11 +45,11 @@ public class MPOLoader {
 		System.out.printf("Offset Base: %x\n", offsetBase);
 
 		// 先頭IFDへのオフセットを取得
-		int offset = getIFDOffset(fileData, offsetBase);
+		int indexIFDOffset = getIFDOffset(fileData, offsetBase);
 		MPIndexFields indexIFD = MPIndexFields.create(fileData, offsetBase
-				+ offset);
+				+ indexIFDOffset);
 		System.out.printf("%x\n", MPIndexFields.MPF_LENGTH + offsetBase
-				+ offset);
+				+ indexIFDOffset);
 		System.out.println("記録画像数:" + indexIFD.getNumberOfImages());
 
 		MPEntry entry = indexIFD.getMPEntry();
@@ -58,7 +58,14 @@ public class MPOLoader {
 
 		int individualOffset = indexIFD.getOffsetOfNextIFD();
 		System.out.printf("%x\n", individualOffset);
-		System.out.printf("%x\n", individualOffset + offsetBase);
+
+		int attrOffsetBase = individualOffset + offsetBase;
+		System.out.printf("attrOffsetBase %x\n", attrOffsetBase);
+		// System.out.printf("%x\n", attrOffsetBase + getIFDOffset(fileData,
+		// attrOffsetBase));
+		MPAttributeFields attr = MPAttributeFields.create(fileData,
+				attrOffsetBase);
+		System.out.println(attr.getMPIndividualNum());
 
 		MPEntry entry1 = new MPEntry(fileData, entry.getOffset() + offsetBase);
 		System.out.printf("%x\n", entry1.getOffset());
