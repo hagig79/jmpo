@@ -68,6 +68,7 @@ public class MPOLoader {
 		MPAttributeFields attr = MPAttributeFields.create(fileData,
 				attrOffsetBase);
 		System.out.println(attr.getMPIndividualNum());
+		System.out.println(attr.getBaselineLength().getDouble());
 		
 		List<MPEntry> entries = new ArrayList<MPEntry>();
 		

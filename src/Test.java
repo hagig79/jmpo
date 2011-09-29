@@ -13,7 +13,7 @@ import jp.skr.soundwing.mpo.MPOLoader;
 
 public class Test {
 	public static void main(String[] args) {
-		String path = "testdata/HNI_0021.MPO.jpg";
+		String path = "testdata/HNI_0020.MPO.jpg";
 		File file = new File(path);
 		FileInputStream is = null;
 		try {

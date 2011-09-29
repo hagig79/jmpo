@@ -1,28 +1,33 @@
 package jp.skr.soundwing.mpo;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MPOImage {
 
-	/**
-	 * 左側の画像.
-	 */
-	private BufferedImage left;
-	/**
-	 * 右側の画像.
-	 */
-	private BufferedImage right;
+	private List<BufferedImage> images;
 
 	MPOImage(BufferedImage left, BufferedImage right) {
-		this.left = left;
-		this.right = right;
+		this(new BufferedImage[] { left, right });
+	}
+
+	MPOImage(BufferedImage[] images) {
+		this.images = new ArrayList<BufferedImage>();
+		for (BufferedImage image : images) {
+			this.images.add(image);
+		}
 	}
 
 	public BufferedImage getLeftImage() {
-		return left;
+		return images.get(0);
 	}
 
 	public BufferedImage getRightImage() {
-		return right;
+		return images.get(1);
+	}
+
+	public int getNumberOfImages() {
+		return images.size();
 	}
 }

@@ -10,16 +10,19 @@ public class MPAttributeFields {
 	static final byte[] MP_INDIVIDUAL_NUM_TAG = { (byte) 0xb1, 0x01 };
 	static final byte[] BASE_VIEWPOINT_NUM_TAG = { (byte) 0xb2, 0x04 };
 	static final byte[] CONVERGENCE_ANGLE_TAG = { (byte) 0xb2, 0x05 };
+	static final byte[] BASELINE_LENGTH_TAG = { (byte) 0xb2, 0x06 };
 
 	static final int COUNT_LENGTH = 2;
 	static final int MP_INDIVIDUAL_NUM_LENGTH = 12;
 	static final int BASE_VIEWPOINT_NUM_LENGTH = 12;
 	static final int CONVERGENCE_ANGLE_LENGTH = 12;
+	static final int BASELINE_LENGTH_LENGTH = 12;
 
 	byte[] count;
 	byte[] mpIndividualNum;
 	byte[] baseViewpointNum;
 	byte[] convergenceAngle;
+	byte[] baselineLength;
 
 	public MPAttributeFields() {
 		count = new byte[COUNT_LENGTH];
@@ -50,6 +53,12 @@ public class MPAttributeFields {
 					mpf.convergenceAngle.length);
 			pos += CONVERGENCE_ANGLE_LENGTH;
 		}
+		if (MPIndexFields.startsWith(fileData, pos, BASELINE_LENGTH_TAG)) {
+			mpf.baselineLength = new byte[BASELINE_LENGTH_LENGTH];
+			System.arraycopy(fileData, pos, mpf.baselineLength, 0,
+					mpf.baselineLength.length);
+			pos += BASELINE_LENGTH_LENGTH;
+		}
 		return mpf;
 	}
 
@@ -72,7 +81,7 @@ public class MPAttributeFields {
 	/**
 	 * 輻輳角を返す.
 	 * 
-	 * @return 
+	 * @return
 	 */
 	public Rational getConvergenceAngle() {
 		int n = MPOLoader.getInt(convergenceAngle, 4);
@@ -81,4 +90,15 @@ public class MPAttributeFields {
 		return new Rational(n, d);
 	}
 
+	/**
+	 * 基線長を返す.
+	 * 
+	 * @return 基線長[m]
+	 */
+	public Rational getBaselineLength() {
+		int n = MPOLoader.getInt(baselineLength, 4);
+		int d = MPOLoader
+				.getInt(baselineLength, 4 + MPIndexFields.INTEGER_SIZE);
+		return new Rational(n, d);
+	}
 }
