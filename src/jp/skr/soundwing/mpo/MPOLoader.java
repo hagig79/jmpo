@@ -5,7 +5,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -67,12 +69,20 @@ public class MPOLoader {
 				attrOffsetBase);
 		System.out.println(attr.getMPIndividualNum());
 		
-		MPEntry entry1 = new MPEntry(fileData, entryOffset + offsetBase);
-		System.out.printf("%d\n", entry1.getSize());
-		System.out.printf("%x\n", entry1.getOffset());
+		List<MPEntry> entries = new ArrayList<MPEntry>();
+		
+		for (int i = 0; i < indexIFD.getNumberOfImages(); i++) {
 
-		int jpegHead = findJpegHead(fileData, 0);
-		int jpegHead2 = findJpegHead(fileData, jpegHead + 1);
+			MPEntry entry = new MPEntry(fileData, entryOffset + offsetBase
+					+ 16 * i);
+			entries.add(entry);
+			System.out.printf("%d\n", entry.getSize());
+			System.out.printf("%x\n", entry.getOffset() + offsetBase);
+		}
+		
+
+		int jpegHead = 0;
+		int jpegHead2 = entries.get(1).getOffset() + offsetBase;
 
 		final BufferedImage image1 = createImage(fileData, jpegHead, jpegHead2
 				- jpegHead);
