@@ -26,7 +26,11 @@ public class MPEntry {
 		this.offset = MPOLoader.getInt(buffer, mpentryHead + 8);
 	}
 
-
+	/**
+	 * 個別画像のサイズを取得する.
+	 * 
+	 * @return 個別画像のサイズ
+	 */
 	public int getSize() {
 		return size;
 	}
