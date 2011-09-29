@@ -8,7 +8,7 @@ import java.io.IOException;
 
 import javax.swing.JFrame;
 
-import jp.skr.soundwing.mpo.MPOImage;
+import jp.skr.soundwing.mpo.MPOFile;
 import jp.skr.soundwing.mpo.MPOLoader;
 
 public class Test {
@@ -18,13 +18,15 @@ public class Test {
 		FileInputStream is = null;
 		try {
 			is = new FileInputStream(file);
-			final MPOImage image = MPOLoader.read(is);
+			final MPOFile image = MPOLoader.read(is);
 			int width = 640;
 			int height = 480;
 			int[] pixels1 = new int[640 * 480];
-			image.getLeftImage().getRGB(0, 0, 640, 480, pixels1, 0, 640);
+			image.getLeftImage().getBufferedImage()
+					.getRGB(0, 0, 640, 480, pixels1, 0, 640);
 			int[] pixels2 = new int[640 * 480];
-			image.getRightImage().getRGB(0, 0, 640, 480, pixels2, 0, 640);
+			image.getRightImage().getBufferedImage()
+					.getRGB(0, 0, 640, 480, pixels2, 0, 640);
 			//
 			// int[] out = calcZ(pixels1, pixels2, 640);
 			// final BufferedImage image3 = new BufferedImage(width, height,
@@ -34,16 +36,21 @@ public class Test {
 			int windowY = 100;
 			int windowWidth = 50;
 			int windowHeight = 50;
-			drawRect(image.getLeftImage(), windowX, windowY, windowWidth, windowHeight, Color.red);
-			int d = calcD(pixels2, pixels1, 640, windowX, windowY, windowWidth, windowHeight);
+			drawRect(image.getLeftImage().getBufferedImage(), windowX, windowY,
+					windowWidth, windowHeight, Color.red);
+			int d = calcD(pixels2, pixels1, 640, windowX, windowY, windowWidth,
+					windowHeight);
 			System.out.println("d = " + d);
-			drawRect(image.getRightImage(), windowX - d, windowY, windowWidth, windowHeight, Color.red);
+			drawRect(image.getRightImage().getBufferedImage(), windowX - d,
+					windowY, windowWidth, windowHeight, Color.red);
 			JFrame frame = new JFrame() {
 				@Override
 				public void paint(Graphics g) {
-					g.drawImage(image.getLeftImage(), 0, 0, this);
+					g.drawImage(image.getLeftImage().getBufferedImage(), 0, 0,
+							this);
 					// g.drawImage(image3, 0, 0, this);
-					g.drawImage(image.getRightImage(), 640, 0, this);
+					g.drawImage(image.getRightImage().getBufferedImage(), 640,
+							0, this);
 				}
 			};
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

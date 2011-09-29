@@ -35,7 +35,7 @@ public class MPOLoader {
 	 * @return
 	 * @throws IOException
 	 */
-	public static MPOImage read(InputStream stream) throws IOException {
+	public static MPOFile read(InputStream stream) throws IOException {
 		// バイナリでファイルをすべて読み込む
 		byte[] fileData = readFile(stream);
 
@@ -68,6 +68,7 @@ public class MPOLoader {
 		MPAttributeFields attr = MPAttributeFields.create(fileData,
 				attrOffsetBase);
 		System.out.println(attr.getMPIndividualNum());
+		System.out.println(attr.getConvergenceAngle().getDouble());
 		System.out.println(attr.getBaselineLength().getDouble());
 		
 		List<MPEntry> entries = new ArrayList<MPEntry>();
@@ -90,7 +91,7 @@ public class MPOLoader {
 		final BufferedImage image2 = createImage(fileData, jpegHead2,
 				fileData.length - jpegHead2);
 
-		return new MPOImage(image1, image2);
+		return new MPOFile(image1, image2);
 	}
 
 	private static byte[] readFile(InputStream stream) throws IOException {

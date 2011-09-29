@@ -16,7 +16,7 @@ public class MPOLoaderTest {
 		File file = new File(path);
 		FileInputStream is = new FileInputStream(file);
 		// exercise
-		MPOImage image = MPOLoader.read(is);
+		MPOFile image = MPOLoader.read(is);
 		// verify
 		assertNotNull(image);
 	}

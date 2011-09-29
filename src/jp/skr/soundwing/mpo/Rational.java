@@ -10,7 +10,7 @@ public class Rational {
 	 */
 	private int numerator;
 	/**
-	 * 分母
+	 * 分母.
 	 */
 	private int decominator;
 

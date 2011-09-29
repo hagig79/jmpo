@@ -81,7 +81,7 @@ public class MPAttributeFields {
 	/**
 	 * 輻輳角を返す.
 	 * 
-	 * @return
+	 * @return 輻輳角(-180〜180)[degree]
 	 */
 	public Rational getConvergenceAngle() {
 		int n = MPOLoader.getInt(convergenceAngle, 4);
