@@ -52,9 +52,9 @@ public class MPOLoader {
 				+ indexIFDOffset);
 		System.out.println("記録画像数:" + indexIFD.getNumberOfImages());
 
-		MPEntry entry = indexIFD.getMPEntry();
-		System.out.printf("%d\n", entry.getSize());
-		System.out.printf("%x\n", entry.getOffset());
+		int entryOffset = indexIFD.getMPEntryOffset();
+		System.out.printf("%x\n", entryOffset);
+		System.out.printf("entry base %x\n", entryOffset + offsetBase);
 
 		int individualOffset = indexIFD.getOffsetOfNextIFD();
 		System.out.printf("%x\n", individualOffset);
@@ -66,8 +66,9 @@ public class MPOLoader {
 		MPAttributeFields attr = MPAttributeFields.create(fileData,
 				attrOffsetBase);
 		System.out.println(attr.getMPIndividualNum());
-
-		MPEntry entry1 = new MPEntry(fileData, entry.getOffset() + offsetBase);
+		
+		MPEntry entry1 = new MPEntry(fileData, entryOffset + offsetBase);
+		System.out.printf("%d\n", entry1.getSize());
 		System.out.printf("%x\n", entry1.getOffset());
 
 		int jpegHead = findJpegHead(fileData, 0);

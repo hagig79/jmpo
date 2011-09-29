@@ -1,6 +1,7 @@
 package jp.skr.soundwing.mpo;
 
 public class MPEntry {
+	private static final int TYPE_MASK = 0x0fff;
 	/**
 	 * 個別画像種別管理情報.
 	 */
@@ -26,16 +27,27 @@ public class MPEntry {
 		this.offset = MPOLoader.getInt(buffer, mpentryHead + 8);
 	}
 
-	/**
-	 * 個別画像のサイズを取得する.
-	 * 
-	 * @return 個別画像のサイズ
-	 */
 	public int getSize() {
 		return size;
 	}
 
+	/**
+	 * 個別画像へのデータオフセットを返す.
+	 * 
+	 * 先頭画像の場合は0を返す.
+	 * 
+	 * @return 個別画像へのデータオフセット(先頭画像の場合は0)
+	 */
 	public int getOffset() {
 		return offset;
+	}
+
+	/**
+	 * 種別コードを返す.
+	 * 
+	 * @return 種別コード
+	 */
+	public int getTypeCode() {
+		return info & TYPE_MASK;
 	}
 }

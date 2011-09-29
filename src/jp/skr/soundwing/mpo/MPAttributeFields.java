@@ -8,12 +8,18 @@ package jp.skr.soundwing.mpo;
  */
 public class MPAttributeFields {
 	static final byte[] MP_INDIVIDUAL_NUM_TAG = { (byte) 0xb1, 0x01 };
+	static final byte[] BASE_VIEWPOINT_NUM_TAG = { (byte) 0xb2, 0x04 };
+	static final byte[] CONVERGENCE_ANGLE_TAG = { (byte) 0xb2, 0x05 };
 
 	static final int COUNT_LENGTH = 2;
 	static final int MP_INDIVIDUAL_NUM_LENGTH = 12;
+	static final int BASE_VIEWPOINT_NUM_LENGTH = 12;
+	static final int CONVERGENCE_ANGLE_LENGTH = 12;
 
 	byte[] count;
 	byte[] mpIndividualNum;
+	byte[] baseViewpointNum;
+	byte[] convergenceAngle;
 
 	public MPAttributeFields() {
 		count = new byte[COUNT_LENGTH];
@@ -32,6 +38,18 @@ public class MPAttributeFields {
 					mpf.mpIndividualNum.length);
 			pos += MP_INDIVIDUAL_NUM_LENGTH;
 		}
+		if (MPIndexFields.startsWith(fileData, pos, BASE_VIEWPOINT_NUM_TAG)) {
+			mpf.baseViewpointNum = new byte[BASE_VIEWPOINT_NUM_LENGTH];
+			System.arraycopy(fileData, pos, mpf.baseViewpointNum, 0,
+					mpf.baseViewpointNum.length);
+			pos += BASE_VIEWPOINT_NUM_LENGTH;
+		}
+		if (MPIndexFields.startsWith(fileData, pos, CONVERGENCE_ANGLE_TAG)) {
+			mpf.convergenceAngle = new byte[CONVERGENCE_ANGLE_LENGTH];
+			System.arraycopy(fileData, pos, mpf.convergenceAngle, 0,
+					mpf.convergenceAngle.length);
+			pos += CONVERGENCE_ANGLE_LENGTH;
+		}
 		return mpf;
 	}
 
@@ -49,6 +67,18 @@ public class MPAttributeFields {
 		} else {
 			return -1;
 		}
+	}
+
+	/**
+	 * 輻輳角を返す.
+	 * 
+	 * @return 
+	 */
+	public Rational getConvergenceAngle() {
+		int n = MPOLoader.getInt(convergenceAngle, 4);
+		int d = MPOLoader.getInt(convergenceAngle,
+				4 + MPIndexFields.INTEGER_SIZE);
+		return new Rational(n, d);
 	}
 
 }

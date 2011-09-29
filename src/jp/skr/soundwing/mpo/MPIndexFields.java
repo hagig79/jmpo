@@ -113,12 +113,12 @@ public class MPIndexFields {
 	}
 
 	/**
-	 * MPエントリを取得する.
+	 * MPエントリへのオフセットを取得する.
 	 * 
-	 * @return MPエントリ
+	 * @return MPエントリへのオフセット
 	 */
-	public MPEntry getMPEntry() {
-		return new MPEntry(entry, 0);
+	public int getMPEntryOffset() {
+		return MPOLoader.getInt(entry, entry.length - INTEGER_SIZE);
 	}
 
 	/**
