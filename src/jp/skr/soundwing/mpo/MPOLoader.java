@@ -3,8 +3,12 @@ package jp.skr.soundwing.mpo;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -22,13 +26,26 @@ public class MPOLoader {
 	private static final int BUFFER_SIZE = 1024;
 	private static final int ENDIAN_OFFSET_SIZE = 8;
 
-	// public static MPOImage read(File input) {
-	//
-	// }
-	//
-	// public static MPOImage read(URL input) {
-	//
-	// }
+	/**
+	 * @param input
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public static MPOFile read(File input) throws FileNotFoundException, IOException {
+		return read(new FileInputStream(input));
+	}
+
+	/**
+	 * @param input
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	public static MPOFile read(URL input) throws FileNotFoundException,
+			IOException {
+		return read(new FileInputStream(input.getPath()));
+	}
 
 	/**
 	 * @param stream
@@ -70,18 +87,17 @@ public class MPOLoader {
 		System.out.println(attr.getMPIndividualNum());
 		System.out.println(attr.getConvergenceAngle().getDouble());
 		System.out.println(attr.getBaselineLength().getDouble());
-		
+
 		List<MPEntry> entries = new ArrayList<MPEntry>();
-		
+
 		for (int i = 0; i < indexIFD.getNumberOfImages(); i++) {
 
-			MPEntry entry = new MPEntry(fileData, entryOffset + offsetBase
-					+ 16 * i);
+			MPEntry entry = new MPEntry(fileData, entryOffset + offsetBase + 16
+					* i);
 			entries.add(entry);
 			System.out.printf("%d\n", entry.getSize());
 			System.out.printf("%x\n", entry.getOffset() + offsetBase);
 		}
-		
 
 		int jpegHead = 0;
 		int jpegHead2 = entries.get(1).getOffset() + offsetBase;
