@@ -24,7 +24,7 @@ import javax.imageio.stream.ImageInputStream;
 public class MPOLoader {
 
 	private static final int BUFFER_SIZE = 1024;
-	private static final int ENDIAN_OFFSET_SIZE = 8;
+	static final int ENDIAN_OFFSET_SIZE = 8;
 
 	/**
 	 * @param input
@@ -32,7 +32,8 @@ public class MPOLoader {
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 */
-	public static MPOFile read(File input) throws FileNotFoundException, IOException {
+	public static MPOFile read(File input) throws FileNotFoundException,
+			IOException {
 		return read(new FileInputStream(input));
 	}
 
@@ -58,45 +59,52 @@ public class MPOLoader {
 
 		System.out.println("file size: " + fileData.length);
 		int app2 = findAPP2Tag(fileData, 0);
-		System.out.printf("%x\n", app2);
+
+		MPExtensions firstExt = MPExtensions.create(fileData, app2);
+
 		// オフセットの基準点
 		int offsetBase = app2 + ENDIAN_OFFSET_SIZE;
 		System.out.printf("Offset Base: %x\n", offsetBase);
 
 		// 先頭IFDへのオフセットを取得
-		int indexIFDOffset = getIFDOffset(fileData, offsetBase);
-		MPIndexFields indexIFD = MPIndexFields.create(fileData, offsetBase
-				+ indexIFDOffset);
-		System.out.printf("%x\n", MPIndexFields.MPF_LENGTH + offsetBase
-				+ indexIFDOffset);
-		System.out.println("記録画像数:" + indexIFD.getNumberOfImages());
+		// int indexIFDOffset = getIFDOffset(fileData, offsetBase);
+		// MPIndexFields indexIFD = MPIndexFields.create(fileData, offsetBase
+		// + indexIFDOffset);
+		// System.out.printf("%x\n", MPIndexFields.MPF_LENGTH + offsetBase
+		// + indexIFDOffset);
+		// System.out.println("記録画像数:" + indexIFD.getNumberOfImages());
 
-		int entryOffset = indexIFD.getMPEntryOffset();
-		System.out.printf("%x\n", entryOffset);
-		System.out.printf("entry base %x\n", entryOffset + offsetBase);
-
-		int individualOffset = indexIFD.getOffsetOfNextIFD();
-		System.out.printf("%x\n", individualOffset);
-
-		int attrOffsetBase = individualOffset + offsetBase;
-		System.out.printf("attrOffsetBase %x\n", attrOffsetBase);
-		// System.out.printf("%x\n", attrOffsetBase + getIFDOffset(fileData,
-		// attrOffsetBase));
-		MPAttributeFields attr = MPAttributeFields.create(fileData,
-				attrOffsetBase);
-		System.out.println(attr.getMPIndividualNum());
-		System.out.println(attr.getConvergenceAngle().getDouble());
-		System.out.println(attr.getBaselineLength().getDouble());
+		// int entryOffset = indexIFD.getMPEntryOffset();
+		// System.out.printf("%x\n", entryOffset);
+		// System.out.printf("entry base %x\n", entryOffset + offsetBase);
 
 		List<MPEntry> entries = new ArrayList<MPEntry>();
 
-		for (int i = 0; i < indexIFD.getNumberOfImages(); i++) {
+		for (int i = 0; i < firstExt.getMPIndexIFD().getNumberOfImages(); i++) {
 
-			MPEntry entry = new MPEntry(fileData, entryOffset + offsetBase + 16
-					* i);
+			MPEntry entry = new MPEntry(fileData,
+					firstExt.indexIFD.getMPEntryOffset() + offsetBase + 16 * i);
 			entries.add(entry);
 			System.out.printf("%d\n", entry.getSize());
 			System.out.printf("%x\n", entry.getOffset() + offsetBase);
+			MPAttributeFields attr;
+			if (i == 0) {
+				System.out.printf("%x\n", findAPP2Tag(fileData, 0));
+				attr = firstExt.individualIFD;
+//				attr = MPAttributeFields.create(fileData,
+//						firstExt.indexIFD.getOffsetOfNextIFD() + offsetBase);
+			} else {
+				System.out.printf("%x\n",
+						findAPP2Tag(fileData, entry.getOffset() + offsetBase));
+				MPExtensions ext = MPExtensions.create(fileData,
+						findAPP2Tag(fileData, entry.getOffset() + offsetBase));
+				attr = ext.individualIFD;
+			}
+
+			System.out.println("個別画像番号: " + attr.getMPIndividualNum());
+			System.out
+					.println("輻輳角: " + attr.getConvergenceAngle().getDouble());
+			System.out.println("基線長: " + attr.getBaselineLength().getDouble());
 		}
 
 		int jpegHead = 0;
@@ -110,7 +118,7 @@ public class MPOLoader {
 		return new MPOFile(image1, image2);
 	}
 
-	private static byte[] readFile(InputStream stream) throws IOException {
+	static byte[] readFile(InputStream stream) throws IOException {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 
 		int buff = 0;
@@ -142,7 +150,7 @@ public class MPOLoader {
 	 * @param offset
 	 * @return
 	 */
-	private static int findAPP2Tag(byte[] buffer, int offset) {
+	static int findAPP2Tag(byte[] buffer, int offset) {
 		for (int i = offset; i < buffer.length; i++) {
 			if (((buffer[i] & 0xff) == 0xff)
 					&& ((buffer[i + 1] & 0xff) == 0xe2)
