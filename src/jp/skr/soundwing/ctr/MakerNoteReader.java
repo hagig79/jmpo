@@ -10,13 +10,27 @@ public class MakerNoteReader {
 			return null;
 		}
 		int size = MPOLoader.getInt(buffer, tag + 2 + 2);
-//		int offsetBase = findOffsetBase();
+		int offsetBase = findOffsetBase(buffer, offset);
 		int dataOffset = MPOLoader.getInt(buffer, tag + 2 + 2 + 4);
 		byte[] result = new byte[size];
-		System.arraycopy(buffer, dataOffset, result, 0, size);
+		System.arraycopy(buffer, offsetBase + dataOffset, result, 0, size);
 		return result;
 	}
 	
+	private int findOffsetBase(byte[] buffer, int offset) {
+		for (int i = offset; i < buffer.length; i++) {
+			if (((buffer[i] & 0xff) == 0xff)
+					&& ((buffer[i + 1] & 0xff) == 0xe1)
+					&& ((buffer[i + 4] & 0xff) == 'E')
+					&& ((buffer[i + 5] & 0xff) == 'x')
+					&& ((buffer[i + 6] & 0xff) == 'i')
+					&& ((buffer[i + 7] & 0xff) == 'f')) {
+				return i + 10;
+			}
+		}
+		return -1;
+	}
+
 	private static int findMakerNoteTag(byte[] buffer, int offset) {
 
 		for (int i = offset; i < buffer.length; i++) {

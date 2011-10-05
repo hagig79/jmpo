@@ -215,7 +215,7 @@ public class MPOLoader {
 		return reader.read(0);
 	}
 
-	static int getInt(byte[] buffer, int offset) {
+	public static int getInt(byte[] buffer, int offset) {
 		return ((buffer[offset] & 0xff) << 24)
 				| ((buffer[offset + 1] & 0xff) << 16)
 				| ((buffer[offset + 2] & 0xff) << 8)
