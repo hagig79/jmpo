@@ -4,7 +4,7 @@ import jp.skr.soundwing.mpo.MPOLoader;
 
 public class MakerNoteReader {
 	
-	public byte[] readMakerNote(byte[] buffer, int offset) {
+	public static byte[] readMakerNote(byte[] buffer, int offset) {
 		int tag = findMakerNoteTag(buffer, offset);
 		if(tag < 0) {
 			return null;
@@ -17,7 +17,7 @@ public class MakerNoteReader {
 		return result;
 	}
 	
-	private int findOffsetBase(byte[] buffer, int offset) {
+	private static int findOffsetBase(byte[] buffer, int offset) {
 		for (int i = offset; i < buffer.length; i++) {
 			if (((buffer[i] & 0xff) == 0xff)
 					&& ((buffer[i + 1] & 0xff) == 0xe1)
