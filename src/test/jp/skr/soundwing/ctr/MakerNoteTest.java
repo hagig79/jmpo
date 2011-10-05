@@ -21,9 +21,6 @@ public class MakerNoteTest {
 		byte[] buffer = readFile(is);
 		// exercise
 		byte[] makernote = MakerNoteReader.readMakerNote(buffer, 0);
-//		for (int i = 0; i < makernote.length; i++) {
-//			System.out.printf("%02x ", makernote[i] & 0xff);
-//		}
 		// verify
 		assertNotNull(makernote);
 	}
