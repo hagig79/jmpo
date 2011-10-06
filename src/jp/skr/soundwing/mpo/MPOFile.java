@@ -17,8 +17,7 @@ public class MPOFile {
 	private List<MPOImage> images;
 
 	MPOFile(BufferedImage left, BufferedImage right) {
-		this(new MPOImage[] { new MPOImage(left, null),
-				new MPOImage(right, null) });
+		this(new MPOImage[] { new MPOImage(left, null), new MPOImage(right, null) });
 	}
 
 	MPOFile(MPOImage left, MPOImage right) {
@@ -32,14 +31,25 @@ public class MPOFile {
 		}
 	}
 
+	/**
+	 * @return
+	 */
 	public MPOImage getLeftImage() {
 		return images.get(0);
 	}
 
+	/**
+	 * @return
+	 */
 	public MPOImage getRightImage() {
 		return images.get(1);
 	}
 
+	/**
+	 * このMPOFileが持つMPOImageの数を返す.
+	 * 
+	 * @return MPOFileの数
+	 */
 	public int getNumberOfImages() {
 		return images.size();
 	}

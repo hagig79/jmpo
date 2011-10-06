@@ -1,5 +1,11 @@
 package jp.skr.soundwing.mpo;
 
+/**
+ * MPエントリー.
+ * 
+ * @author mudwell
+ * 
+ */
 public class MPEntry {
 	private static final int TYPE_MASK = 0x0fff;
 	/**

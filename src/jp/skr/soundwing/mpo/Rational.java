@@ -20,6 +20,8 @@ public class Rational {
 	}
 
 	/**
+	 * このRationalが表す値をdouble型で取得する.
+	 * 
 	 * @return
 	 */
 	public double getDouble() {
