@@ -7,8 +7,8 @@ import java.net.URL;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import jp.skr.soundwing.mpo.MPOImage;
-import jp.skr.soundwing.mpo.MPOLoader;
+import jp.skr.soundwing.mpo.MpoImage;
+import jp.skr.soundwing.mpo.MpoLoader;
 
 public class MPOLoaderTest {
 	@Test
@@ -18,7 +18,7 @@ public class MPOLoaderTest {
 		File file = new File(path);
 		FileInputStream is = new FileInputStream(file);
 		// exercise
-		MPOFile image = MPOLoader.read(is);
+		MpoFile image = MpoLoader.read(is);
 		// verify
 		assertNotNull(image);
 	}

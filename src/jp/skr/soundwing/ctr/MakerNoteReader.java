@@ -1,6 +1,6 @@
 package jp.skr.soundwing.ctr;
 
-import jp.skr.soundwing.mpo.MPOLoader;
+import jp.skr.soundwing.mpo.MpoLoader;
 
 public class MakerNoteReader {
 	
@@ -9,9 +9,9 @@ public class MakerNoteReader {
 		if(tag < 0) {
 			return null;
 		}
-		int size = MPOLoader.getInt(buffer, tag + 2 + 2);
+		int size = MpoLoader.getInt(buffer, tag + 2 + 2);
 		int offsetBase = findOffsetBase(buffer, offset);
-		int dataOffset = MPOLoader.getInt(buffer, tag + 2 + 2 + 4);
+		int dataOffset = MpoLoader.getInt(buffer, tag + 2 + 2 + 4);
 		byte[] result = new byte[size];
 		System.arraycopy(buffer, offsetBase + dataOffset, result, 0, size);
 		return result;

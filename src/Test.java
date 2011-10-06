@@ -8,8 +8,8 @@ import java.io.IOException;
 
 import javax.swing.JFrame;
 
-import jp.skr.soundwing.mpo.MPOFile;
-import jp.skr.soundwing.mpo.MPOLoader;
+import jp.skr.soundwing.mpo.MpoFile;
+import jp.skr.soundwing.mpo.MpoLoader;
 
 public class Test {
 	public static void main(String[] args) {
@@ -18,7 +18,7 @@ public class Test {
 		FileInputStream is = null;
 		try {
 			is = new FileInputStream(file);
-			final MPOFile image = MPOLoader.read(is);
+			final MpoFile image = MpoLoader.read(is);
 			int width = 640;
 			int height = 480;
 			int[] pixels1 = new int[640 * 480];

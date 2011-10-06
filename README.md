@@ -1,4 +1,6 @@
 ## 使い方
 
-    MPOFile mpofile = MPOLoader.read(new File("HNI_0001.MPO"));
+    MpoFile mpofile = MpoLoader.read(new File("HNI_0001.MPO"));
+    MpoImage leftImage = mpofile.getLeftImage();
+    MpoImage rightImage = mpofile.getRightImage();
 
