@@ -1,5 +1,9 @@
 package jp.skr.soundwing.mpo;
 
+import static jp.skr.soundwing.exif.ExifUtil.startsWith;
+
+import java.io.ObjectInputStream.GetField;
+
 /**
  * MPインデックスIFD.
  * 
@@ -51,55 +55,37 @@ public class MpIndexFields {
 	 */
 	public static MpIndexFields create(byte[] buffer, int offset) {
 		MpIndexFields mpf = new MpIndexFields();
-		int pos = offset;
+		// int pos = offset;
 		System.arraycopy(buffer, offset, mpf.count, 0, mpf.count.length);
+		int count = MpoLoader.getShort(buffer, offset);
+		// pos += COUNT_LENGTH;
+		for (int i = 0; i < count; i++) {
+			int pTag = offset + 2 + 12 * i;
+			if (startsWith(buffer, pTag, VERSION_TAG)) {
+				System.arraycopy(buffer, pTag, mpf.version, 0,
+						mpf.version.length);
+			} else if (startsWith(buffer, pTag, NUMBER_OF_IMAGES_TAG)) {
 
-		pos += COUNT_LENGTH;
-		if (startsWith(buffer, pos, VERSION_TAG)) {
+				System.arraycopy(buffer, pTag, mpf.numberOfImages, 0,
+						mpf.numberOfImages.length);
+			} else if (startsWith(buffer, pTag, ENTRY_TAG)) {
+				System.arraycopy(buffer, pTag, mpf.entry, 0, mpf.entry.length);
 
-			System.arraycopy(buffer, pos, mpf.version, 0, mpf.version.length);
-			pos += VERSION_LENGTH;
-		}
+			} else if (startsWith(buffer, pTag, UNIQUE_TAG)) {
+				mpf.unique = new byte[UNIQUE_LENGTH];
+				System.arraycopy(buffer, pTag, mpf.unique, 0, mpf.unique.length);
 
-		if (startsWith(buffer, pos, NUMBER_OF_IMAGES_TAG)) {
+			} else if (startsWith(buffer, pTag, KOMA_TAG)) {
+				mpf.koma = new byte[KOMA_LENGTH];
+				System.arraycopy(buffer, pTag, mpf.koma, 0, mpf.koma.length);
 
-			System.arraycopy(buffer, pos, mpf.numberOfImages, 0,
-					mpf.numberOfImages.length);
-			pos += N_LENGTH;
-		}
-
-		if (startsWith(buffer, pos, ENTRY_TAG)) {
-
-			System.arraycopy(buffer, offset + COUNT_LENGTH + VERSION_LENGTH
-					+ N_LENGTH, mpf.entry, 0, mpf.entry.length);
-			pos += ENTRY_LENGTH;
-		}
-
-		if (startsWith(buffer, pos, UNIQUE_TAG)) {
-			mpf.unique = new byte[UNIQUE_LENGTH];
-			System.arraycopy(buffer, pos, mpf.unique, 0, mpf.unique.length);
-			pos += UNIQUE_LENGTH;
-
-		}
-
-		if (startsWith(buffer, pos, KOMA_TAG)) {
-			mpf.koma = new byte[KOMA_LENGTH];
-			System.arraycopy(buffer, pos, mpf.koma, 0, mpf.koma.length);
-			pos += KOMA_LENGTH;
-		}
-
-		System.arraycopy(buffer, pos, mpf.offsetOfNextIFD, 0,
-				mpf.offsetOfNextIFD.length);
-		return mpf;
-	}
-
-	static boolean startsWith(byte[] array, int offset, byte[] subarray) {
-		for (int i = 0; i < subarray.length; i++) {
-			if (array[i + offset] != subarray[i]) {
-				return false;
 			}
 		}
-		return true;
+
+		System.arraycopy(buffer, offset + 2 + 12 * count, mpf.offsetOfNextIFD,
+				0, mpf.offsetOfNextIFD.length);
+
+		return mpf;
 	}
 
 	/**
@@ -129,5 +115,14 @@ public class MpIndexFields {
 	public int getOffsetOfNextIFD() {
 		return MpoLoader.getInt(offsetOfNextIFD, offsetOfNextIFD.length
 				- INTEGER_SIZE);
+	}
+
+	public void setNumberOfImages(int int1) {
+
+	}
+
+	public boolean isFirst() {
+
+		return numberOfImages != null;
 	}
 }

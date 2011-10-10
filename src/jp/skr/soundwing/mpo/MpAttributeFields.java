@@ -1,5 +1,7 @@
 package jp.skr.soundwing.mpo;
 
+import static jp.skr.soundwing.exif.ExifUtil.startsWith;
+
 /**
  * MP個別情報IFD.
  * 
@@ -19,55 +21,68 @@ public class MpAttributeFields {
 	static final int BASE_VIEWPOINT_NUM_LENGTH = 12;
 	static final int CONVERGENCE_ANGLE_LENGTH = 12;
 	static final int BASELINE_LENGTH_LENGTH = 12;
+	static final int OFFSET_OF_NEXT_IFD_LENGTH = 4;
 
 	byte[] count;
 	byte[] version;
 	byte[] mpIndividualNum;
 	byte[] baseViewpointNum;
-	byte[] convergenceAngle;
-	byte[] baselineLength;
+	private Rational convergenceAngle;
+	private Rational baselineLength;
+	byte[] offsetOfNextIFD;
 
 	public MpAttributeFields() {
 		count = new byte[COUNT_LENGTH];
+		offsetOfNextIFD = new byte[OFFSET_OF_NEXT_IFD_LENGTH];
 	}
 
-	public static MpAttributeFields create(byte[] fileData, int attrHead) {
+	/**
+	 * @param fileData
+	 * @param attrHead
+	 * @param offsetBase
+	 * @return
+	 */
+	public static MpAttributeFields create(byte[] fileData, int attrHead,
+			int offsetBase) {
 		MpAttributeFields mpf = new MpAttributeFields();
 		int pos = attrHead;
 		System.out.printf("MPAHEAD: %x\n", attrHead);
 		System.arraycopy(fileData, attrHead, mpf.count, 0, mpf.count.length);
+		int count = MpoLoader.getShort(fileData, attrHead);
+		System.out.println("count: " + count);
 
-		pos += COUNT_LENGTH;
+		for (int i = 0; i < count; i++) {
+			int pTag = attrHead + 2 + 12 * i;
+			if (startsWith(fileData, pTag, VERSION_TAG)) {
+				mpf.version = new byte[VERSION_LENGTH];
+				System.arraycopy(fileData, pTag, mpf.version, 0,
+						mpf.version.length);
+			} else if (startsWith(fileData, pTag, MP_INDIVIDUAL_NUM_TAG)) {
+				mpf.mpIndividualNum = new byte[MP_INDIVIDUAL_NUM_LENGTH];
+				System.arraycopy(fileData, pTag, mpf.mpIndividualNum, 0,
+						mpf.mpIndividualNum.length);
+			} else if (startsWith(fileData, pTag, BASE_VIEWPOINT_NUM_TAG)) {
+				mpf.baseViewpointNum = new byte[BASE_VIEWPOINT_NUM_LENGTH];
+				System.arraycopy(fileData, pTag, mpf.baseViewpointNum, 0,
+						mpf.baseViewpointNum.length);
+			} else if (startsWith(fileData, pTag, CONVERGENCE_ANGLE_TAG)) {
+				int offset = MpoLoader.getInt(fileData, pTag + 8);
+				System.out.printf("ConvergenceAngleOffset: %x\n", offset
+						+ offsetBase);
+				int n = MpoLoader.getInt(fileData, offset + offsetBase);
+				int d = MpoLoader.getInt(fileData, offset + offsetBase + 4);
+				mpf.convergenceAngle = new Rational(n, d);
+			} else if (startsWith(fileData, pTag, BASELINE_LENGTH_TAG)) {
+				int offset = MpoLoader.getInt(fileData, pTag + 8);
+				int n = MpoLoader.getInt(fileData, offset + offsetBase);
+				int d = MpoLoader.getInt(fileData, offset + offsetBase + 4);
+				mpf.baselineLength = new Rational(n, d);
+			}
+		}
 
-		if (MpIndexFields.startsWith(fileData, pos, VERSION_TAG)) {
-			mpf.version = new byte[VERSION_LENGTH];
-			System.arraycopy(fileData, pos, mpf.version, 0, mpf.version.length);
-			pos += VERSION_LENGTH;
-		}
-		if (MpIndexFields.startsWith(fileData, pos, MP_INDIVIDUAL_NUM_TAG)) {
-			mpf.mpIndividualNum = new byte[MP_INDIVIDUAL_NUM_LENGTH];
-			System.arraycopy(fileData, pos, mpf.mpIndividualNum, 0,
-					mpf.mpIndividualNum.length);
-			pos += MP_INDIVIDUAL_NUM_LENGTH;
-		}
-		if (MpIndexFields.startsWith(fileData, pos, BASE_VIEWPOINT_NUM_TAG)) {
-			mpf.baseViewpointNum = new byte[BASE_VIEWPOINT_NUM_LENGTH];
-			System.arraycopy(fileData, pos, mpf.baseViewpointNum, 0,
-					mpf.baseViewpointNum.length);
-			pos += BASE_VIEWPOINT_NUM_LENGTH;
-		}
-		if (MpIndexFields.startsWith(fileData, pos, CONVERGENCE_ANGLE_TAG)) {
-			mpf.convergenceAngle = new byte[CONVERGENCE_ANGLE_LENGTH];
-			System.arraycopy(fileData, pos, mpf.convergenceAngle, 0,
-					mpf.convergenceAngle.length);
-			pos += CONVERGENCE_ANGLE_LENGTH;
-		}
-		if (MpIndexFields.startsWith(fileData, pos, BASELINE_LENGTH_TAG)) {
-			mpf.baselineLength = new byte[BASELINE_LENGTH_LENGTH];
-			System.arraycopy(fileData, pos, mpf.baselineLength, 0,
-					mpf.baselineLength.length);
-			pos += BASELINE_LENGTH_LENGTH;
-		}
+		System.arraycopy(fileData, attrHead + 2 + 12 * count,
+				mpf.offsetOfNextIFD, 0, mpf.offsetOfNextIFD.length);
+
 		return mpf;
 	}
 
@@ -93,10 +108,7 @@ public class MpAttributeFields {
 	 * @return 輻輳角(-180〜180)[degree]
 	 */
 	public Rational getConvergenceAngle() {
-		int n = MpoLoader.getInt(convergenceAngle, 4);
-		int d = MpoLoader.getInt(convergenceAngle,
-				4 + MpIndexFields.INTEGER_SIZE);
-		return new Rational(n, d);
+		return convergenceAngle;
 	}
 
 	/**
@@ -105,9 +117,15 @@ public class MpAttributeFields {
 	 * @return 基線長[m]
 	 */
 	public Rational getBaselineLength() {
-		int n = MpoLoader.getInt(baselineLength, 4);
-		int d = MpoLoader
-				.getInt(baselineLength, 4 + MpIndexFields.INTEGER_SIZE);
-		return new Rational(n, d);
+		return baselineLength;
+	}
+
+	public void setConvergenceAngle(Rational rational) {
+		this.convergenceAngle = rational;
+
+	}
+
+	public int getOffsetOfNextIFD() {
+		return MpoLoader.getInt(offsetOfNextIFD, offsetOfNextIFD.length - 4);
 	}
 }

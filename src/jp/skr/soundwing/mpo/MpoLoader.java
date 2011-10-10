@@ -1,5 +1,7 @@
 package jp.skr.soundwing.mpo;
 
+import static jp.skr.soundwing.mpo.MpoLoader.ENDIAN_OFFSET_SIZE;
+
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,6 +18,8 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+
+import static jp.skr.soundwing.exif.ExifUtil.startsWith;
 
 /**
  * @author mudwell
@@ -58,25 +62,14 @@ public class MpoLoader {
 		byte[] fileData = readFile(stream);
 
 		System.out.println("file size: " + fileData.length);
+
+		// MPヘッダの解析
 		int app2 = findAPP2Tag(fileData, 0);
-
-		MpExtensions firstExt = MpExtensions.create(fileData, app2);
-
 		// オフセットの基準点
 		int offsetBase = app2 + ENDIAN_OFFSET_SIZE;
 		System.out.printf("Offset Base: %x\n", offsetBase);
 
-		// 先頭IFDへのオフセットを取得
-		// int indexIFDOffset = getIFDOffset(fileData, offsetBase);
-		// MPIndexFields indexIFD = MPIndexFields.create(fileData, offsetBase
-		// + indexIFDOffset);
-		// System.out.printf("%x\n", MPIndexFields.MPF_LENGTH + offsetBase
-		// + indexIFDOffset);
-		// System.out.println("記録画像数:" + indexIFD.getNumberOfImages());
-
-		// int entryOffset = indexIFD.getMPEntryOffset();
-		// System.out.printf("%x\n", entryOffset);
-		// System.out.printf("entry base %x\n", entryOffset + offsetBase);
+		MpExtensions firstExt = MpExtensions.createFirst(fileData, offsetBase);
 
 		List<MpEntry> entries = new ArrayList<MpEntry>();
 
@@ -91,13 +84,13 @@ public class MpoLoader {
 			if (i == 0) {
 				System.out.printf("%x\n", findAPP2Tag(fileData, 0));
 				attr = firstExt.individualIFD;
-//				attr = MPAttributeFields.create(fileData,
-//						firstExt.indexIFD.getOffsetOfNextIFD() + offsetBase);
+				// attr = MPAttributeFields.create(fileData,
+				// firstExt.indexIFD.getOffsetOfNextIFD() + offsetBase);
 			} else {
 				System.out.printf("%x\n",
 						findAPP2Tag(fileData, entry.getOffset() + offsetBase));
 				MpExtensions ext = MpExtensions.create(fileData,
-						findAPP2Tag(fileData, entry.getOffset() + offsetBase));
+						findAPP2Tag(fileData, entry.getOffset() + offsetBase) + ENDIAN_OFFSET_SIZE);
 				attr = ext.individualIFD;
 			}
 
@@ -220,5 +213,9 @@ public class MpoLoader {
 				| ((buffer[offset + 1] & 0xff) << 16)
 				| ((buffer[offset + 2] & 0xff) << 8)
 				| ((buffer[offset + 3] & 0xff));
+	}
+
+	public static int getShort(byte[] buffer, int offset) {
+		return ((buffer[offset] & 0xff) << 8) | ((buffer[offset + 1] & 0xff));
 	}
 }
