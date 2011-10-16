@@ -15,7 +15,7 @@ public class MPExtensionsTest {
 		byte[] fileData = readFile();
 		int app2 = MpoLoader.findAPP2Tag(fileData, 0);
 		// exercise
-		MpExtensions ext = MpExtensions.create(fileData, app2);
+		MpExtensions ext = MpExtensions.create(fileData, app2 + 8);
 		// verify
 		assertNotNull(ext);
 	}
@@ -33,7 +33,7 @@ public class MPExtensionsTest {
 		// setup
 		byte[] fileData = readFile();
 		int app2 = MpoLoader.findAPP2Tag(fileData, 0);
-		MpExtensions ext = MpExtensions.create(fileData, app2);
+		MpExtensions ext = MpExtensions.createFirst(fileData, app2 + 8);
 		// exercise
 		boolean actual = ext.isFirst();
 		// verify
@@ -46,7 +46,7 @@ public class MPExtensionsTest {
 		// setup
 		byte[] fileData = readFile();
 		int app2 = MpoLoader.findAPP2Tag(fileData, 0);
-		MpExtensions ext = MpExtensions.create(fileData, app2);
+		MpExtensions ext = MpExtensions.create(fileData, app2 + 8);
 		// exercise
 		int num = ext.individualIFD.getMPIndividualNum();
 		// verify

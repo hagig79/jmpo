@@ -1,7 +1,5 @@
 package jp.skr.soundwing.mpo;
 
-import static jp.skr.soundwing.mpo.MpoLoader.ENDIAN_OFFSET_SIZE;
-
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,8 +16,6 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-
-import static jp.skr.soundwing.exif.ExifUtil.startsWith;
 
 /**
  * @author mudwell
@@ -65,6 +61,9 @@ public class MpoLoader {
 
 		// MPヘッダの解析
 		int app2 = findAPP2Tag(fileData, 0);
+		if (app2 < 0) {
+			throw new IOException("Not MPO File");
+		}
 		// オフセットの基準点
 		int offsetBase = app2 + ENDIAN_OFFSET_SIZE;
 		System.out.printf("Offset Base: %x\n", offsetBase);
@@ -75,8 +74,7 @@ public class MpoLoader {
 
 		for (int i = 0; i < firstExt.getMPIndexIFD().getNumberOfImages(); i++) {
 
-			MpEntry entry = new MpEntry(fileData,
-					firstExt.indexIFD.getMPEntryOffset() + offsetBase + 16 * i);
+			MpEntry entry = firstExt.getMpEntry(i);
 			entries.add(entry);
 			System.out.printf("%d\n", entry.getSize());
 			System.out.printf("%x\n", entry.getOffset() + offsetBase);
@@ -90,7 +88,8 @@ public class MpoLoader {
 				System.out.printf("%x\n",
 						findAPP2Tag(fileData, entry.getOffset() + offsetBase));
 				MpExtensions ext = MpExtensions.create(fileData,
-						findAPP2Tag(fileData, entry.getOffset() + offsetBase) + ENDIAN_OFFSET_SIZE);
+						findAPP2Tag(fileData, entry.getOffset() + offsetBase)
+								+ ENDIAN_OFFSET_SIZE);
 				attr = ext.individualIFD;
 			}
 
@@ -101,7 +100,13 @@ public class MpoLoader {
 		}
 
 		int jpegHead = 0;
-		int jpegHead2 = entries.get(1).getOffset() + offsetBase;
+		int jpegHead2 = 0;
+		if (firstExt.getNumberOfMpEntry() > 0) {
+			jpegHead2 = firstExt.getMpEntry(1).getOffset() + offsetBase;
+
+		} else {
+			jpegHead2 = findJpegHead(fileData, 10);
+		}
 
 		final BufferedImage image1 = createImage(fileData, jpegHead, jpegHead2
 				- jpegHead);
@@ -171,21 +176,6 @@ public class MpoLoader {
 	}
 
 	/**
-	 * @param buffer
-	 * @param offsetBase
-	 *            オフセットの基準点
-	 * @return
-	 */
-	private static int getIFDOffset(byte[] buffer, int offsetBase) {
-		int offset = 0;
-		offset |= (buffer[offsetBase + 4] & 0xff) << 24;
-		offset |= (buffer[offsetBase + 4 + 1] & 0xff) << 16;
-		offset |= (buffer[offsetBase + 4 + 2] & 0xff) << 8;
-		offset |= (buffer[offsetBase + 4 + 3] & 0xff);
-		return offset;
-	}
-
-	/**
 	 * バイト列からBufferedImageインスタンスを作成する.
 	 * 
 	 * @param buffer
@@ -215,7 +205,7 @@ public class MpoLoader {
 				| ((buffer[offset + 3] & 0xff));
 	}
 
-	public static int getShort(byte[] buffer, int offset) {
-		return ((buffer[offset] & 0xff) << 8) | ((buffer[offset + 1] & 0xff));
-	}
+	// public static int getShort(byte[] buffer, int offset) {
+	// return ((buffer[offset] & 0xff) << 8) | ((buffer[offset + 1] & 0xff));
+	// }
 }

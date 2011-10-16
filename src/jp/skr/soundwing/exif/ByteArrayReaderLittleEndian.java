@@ -1,0 +1,26 @@
+package jp.skr.soundwing.exif;
+
+public class ByteArrayReaderLittleEndian extends ByteArrayReader {
+
+	public ByteArrayReaderLittleEndian(byte[] buffer, int offset) {
+		super(buffer, offset);
+	}
+
+	@Override
+	public int getInt() {
+		int value = ((buffer[current] & 0xff))
+				| ((buffer[current + 1] & 0xff) << 8)
+				| ((buffer[current + 2] & 0xff) << 16)
+				| ((buffer[current + 3] & 0xff) << 24);
+		current += 4;
+		return value;
+	}
+
+	@Override
+	public short getShort() {
+		short value = (short) (((buffer[current] & 0xff)) | ((buffer[current + 1] & 0xff) << 8));
+		current += 2;
+		return value;
+	}
+
+}

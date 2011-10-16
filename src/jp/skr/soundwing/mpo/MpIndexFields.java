@@ -1,8 +1,9 @@
 package jp.skr.soundwing.mpo;
 
-import static jp.skr.soundwing.exif.ExifUtil.startsWith;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.io.ObjectInputStream.GetField;
+import jp.skr.soundwing.exif.ByteArrayReader;
 
 /**
  * MPインデックスIFD.
@@ -13,11 +14,12 @@ import java.io.ObjectInputStream.GetField;
 public class MpIndexFields {
 	byte[] count;
 	byte[] version;
-	byte[] numberOfImages;
-	byte[] entry;
+	int numberOfImages;
+	int entry;
 	byte[] unique;
 	byte[] koma;
-	byte[] offsetOfNextIFD;
+	int offsetOfNextIFD;
+	List<MpEntry> mpEntries;
 
 	static final int COUNT_LENGTH = 2;
 	static final int VERSION_LENGTH = 12;
@@ -40,52 +42,47 @@ public class MpIndexFields {
 	public MpIndexFields() {
 		count = new byte[COUNT_LENGTH];
 		version = new byte[VERSION_LENGTH];
-		numberOfImages = new byte[N_LENGTH];
-		entry = new byte[ENTRY_LENGTH];
-		offsetOfNextIFD = new byte[OFFSET_OF_NEXT_IFD_LENGTH];
+		mpEntries = new ArrayList<MpEntry>();
 	}
 
-	/**
-	 * MPIndexFieldsを作成する.
-	 * 
-	 * @param buffer
-	 * @param offset
-	 *            MPインデックスIFDの先頭位置.
-	 * @return
-	 */
-	public static MpIndexFields create(byte[] buffer, int offset) {
+	public static MpIndexFields create(ByteArrayReader reader, int offsetBase) {
 		MpIndexFields mpf = new MpIndexFields();
-		// int pos = offset;
-		System.arraycopy(buffer, offset, mpf.count, 0, mpf.count.length);
-		int count = MpoLoader.getShort(buffer, offset);
-		// pos += COUNT_LENGTH;
+		int count = reader.getShort();
 		for (int i = 0; i < count; i++) {
-			int pTag = offset + 2 + 12 * i;
-			if (startsWith(buffer, pTag, VERSION_TAG)) {
-				System.arraycopy(buffer, pTag, mpf.version, 0,
-						mpf.version.length);
-			} else if (startsWith(buffer, pTag, NUMBER_OF_IMAGES_TAG)) {
+			if (reader.startsWith(VERSION_TAG)) {
+				reader.arraycopy(mpf.version, 0, mpf.version.length);
+			} else if (reader.startsWith(NUMBER_OF_IMAGES_TAG)) {
+				reader.skip(8);
+				mpf.numberOfImages = reader.getInt();
+			} else if (reader.startsWith(ENTRY_TAG)) {
+				reader.skip(8);
+				mpf.entry = reader.getInt();
+				int tmpPos = reader.getPosition();
+				reader.setPosition(mpf.entry + offsetBase);
+				for (int j = 0; j < mpf.numberOfImages; j++) {
+					MpEntry entry = new MpEntry(reader);
+					mpf.mpEntries.add(entry);
+				}
+				System.out.println("Entry: " + mpf.mpEntries.size());
+				reader.setPosition(tmpPos);
 
-				System.arraycopy(buffer, pTag, mpf.numberOfImages, 0,
-						mpf.numberOfImages.length);
-			} else if (startsWith(buffer, pTag, ENTRY_TAG)) {
-				System.arraycopy(buffer, pTag, mpf.entry, 0, mpf.entry.length);
-
-			} else if (startsWith(buffer, pTag, UNIQUE_TAG)) {
+			} else if (reader.startsWith(UNIQUE_TAG)) {
 				mpf.unique = new byte[UNIQUE_LENGTH];
-				System.arraycopy(buffer, pTag, mpf.unique, 0, mpf.unique.length);
+				reader.arraycopy(mpf.unique, 0, mpf.unique.length);
 
-			} else if (startsWith(buffer, pTag, KOMA_TAG)) {
+			} else if (reader.startsWith(KOMA_TAG)) {
 				mpf.koma = new byte[KOMA_LENGTH];
-				System.arraycopy(buffer, pTag, mpf.koma, 0, mpf.koma.length);
+				reader.arraycopy(mpf.koma, 0, mpf.koma.length);
 
+			} else {
+				reader.skip(12);
 			}
+
 		}
 
-		System.arraycopy(buffer, offset + 2 + 12 * count, mpf.offsetOfNextIFD,
-				0, mpf.offsetOfNextIFD.length);
-
+		mpf.offsetOfNextIFD = reader.getInt();
 		return mpf;
+
 	}
 
 	/**
@@ -94,8 +91,7 @@ public class MpIndexFields {
 	 * @return 記録画像数
 	 */
 	public int getNumberOfImages() {
-		return MpoLoader.getInt(numberOfImages, numberOfImages.length
-				- INTEGER_SIZE);
+		return numberOfImages;
 	}
 
 	/**
@@ -104,7 +100,7 @@ public class MpIndexFields {
 	 * @return MPエントリへのオフセット
 	 */
 	public int getMPEntryOffset() {
-		return MpoLoader.getInt(entry, entry.length - INTEGER_SIZE);
+		return entry;
 	}
 
 	/**
@@ -113,8 +109,7 @@ public class MpIndexFields {
 	 * @return MP個別情報IFDのオフセットアドレス
 	 */
 	public int getOffsetOfNextIFD() {
-		return MpoLoader.getInt(offsetOfNextIFD, offsetOfNextIFD.length
-				- INTEGER_SIZE);
+		return offsetOfNextIFD;
 	}
 
 	public void setNumberOfImages(int int1) {
@@ -123,6 +118,15 @@ public class MpIndexFields {
 
 	public boolean isFirst() {
 
-		return numberOfImages != null;
+		return numberOfImages != 0;
+	}
+
+	public MpEntry getMpEntry(int index) {
+		return mpEntries.get(index);
+	}
+
+	public int getNumberOfMpEntry() {
+
+		return mpEntries.size();
 	}
 }

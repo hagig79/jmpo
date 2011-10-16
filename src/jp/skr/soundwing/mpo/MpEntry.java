@@ -1,5 +1,7 @@
 package jp.skr.soundwing.mpo;
 
+import jp.skr.soundwing.exif.ByteArrayReader;
+
 /**
  * MPエントリー.
  * 
@@ -26,15 +28,13 @@ public class MpEntry {
 	private int image1EntryNumber;
 	private int image2EntryNumber;
 
-	/**
-	 * @param buffer
-	 * @param mpentryHead
-	 */
-	public MpEntry(byte[] buffer, int mpentryHead) {
-		System.out.printf("MPEntry Head: %x\n", mpentryHead);
-		this.info = MpoLoader.getInt(buffer, mpentryHead);
-		this.size = MpoLoader.getInt(buffer, mpentryHead + 4);
-		this.offset = MpoLoader.getInt(buffer, mpentryHead + 8);
+
+	
+	public MpEntry(ByteArrayReader reader) {
+		info = reader.getInt();
+		size = reader.getInt();
+		offset = reader.getInt();
+		reader.getInt();
 	}
 
 	/**
