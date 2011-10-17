@@ -19,14 +19,15 @@ public class Test {
 		try {
 			is = new FileInputStream(file);
 			final MpoFile image = MpoLoader.read(is);
-			int width = 640;
-			int height = 480;
-			int[] pixels1 = new int[640 * 480];
+			final int width = image.getLeftImage().getBufferedImage()
+					.getWidth();
+			int height = image.getLeftImage().getBufferedImage().getHeight();
+			int[] pixels1 = new int[width * height];
 			image.getLeftImage().getBufferedImage()
-					.getRGB(0, 0, 640, 480, pixels1, 0, 640);
-			int[] pixels2 = new int[640 * 480];
+					.getRGB(0, 0, width, height, pixels1, 0, width);
+			int[] pixels2 = new int[width * height];
 			image.getRightImage().getBufferedImage()
-					.getRGB(0, 0, 640, 480, pixels2, 0, 640);
+					.getRGB(0, 0, width, height, pixels2, 0, width);
 			//
 			// int[] out = calcZ(pixels1, pixels2, 640);
 			// final BufferedImage image3 = new BufferedImage(width, height,
@@ -38,8 +39,8 @@ public class Test {
 			int windowHeight = 50;
 			drawRect(image.getLeftImage().getBufferedImage(), windowX, windowY,
 					windowWidth, windowHeight, Color.red);
-			int d = calcD(pixels2, pixels1, 640, windowX, windowY, windowWidth,
-					windowHeight);
+			int d = calcD(pixels2, pixels1, width, windowX, windowY,
+					windowWidth, windowHeight);
 			System.out.println("d = " + d);
 			drawRect(image.getRightImage().getBufferedImage(), windowX - d,
 					windowY, windowWidth, windowHeight, Color.red);
@@ -49,12 +50,12 @@ public class Test {
 					g.drawImage(image.getLeftImage().getBufferedImage(), 0, 0,
 							this);
 					// g.drawImage(image3, 0, 0, this);
-					g.drawImage(image.getRightImage().getBufferedImage(), 640,
-							0, this);
+					g.drawImage(image.getRightImage().getBufferedImage(),
+							width, 0, this);
 				}
 			};
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setSize(640 * 2, 480);
+			frame.setSize(width * 2, height);
 			frame.setVisible(true);
 
 		} catch (FileNotFoundException e) {
@@ -81,7 +82,7 @@ public class Test {
 		int[] img_out = (int[]) pixel1.clone();
 		int height = pixel1.length / width;
 
-		int red1, green1, blue1, red2, green2, blue2, mono;
+		int red1, green1, blue1, red2, green2, blue2;
 		for (int i = 0; i < pixel1.length; i++) {
 			red1 = (pixel1[i] >>> 16) & 0xff;
 			green1 = (pixel1[i] >>> 8) & 0xff;

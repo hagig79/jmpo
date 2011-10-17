@@ -57,8 +57,6 @@ public class MpoLoader {
 		// バイナリでファイルをすべて読み込む
 		byte[] fileData = readFile(stream);
 
-		System.out.println("file size: " + fileData.length);
-
 		// MPヘッダの解析
 		int app2 = findAPP2Tag(fileData, 0);
 		if (app2 < 0) {
@@ -66,7 +64,6 @@ public class MpoLoader {
 		}
 		// オフセットの基準点
 		int offsetBase = app2 + ENDIAN_OFFSET_SIZE;
-		System.out.printf("Offset Base: %x\n", offsetBase);
 
 		MpExtensions firstExt = MpExtensions.createFirst(fileData, offsetBase);
 
@@ -76,29 +73,18 @@ public class MpoLoader {
 
 			MpEntry entry = firstExt.getMpEntry(i);
 			entries.add(entry);
-			System.out.printf("%d\n", entry.getSize());
-			System.out.printf("%x\n", entry.getOffset() + offsetBase);
 			MpAttributeFields attr;
 			if (i == 0) {
-				System.out.printf("%x\n", findAPP2Tag(fileData, 0));
 				attr = firstExt.individualIFD;
 				// attr = MPAttributeFields.create(fileData,
 				// firstExt.indexIFD.getOffsetOfNextIFD() + offsetBase);
 			} else {
-				System.out.printf("%x\n",
-						findAPP2Tag(fileData, entry.getOffset() + offsetBase));
 				MpExtensions ext = MpExtensions.create(fileData,
 						findAPP2Tag(fileData, entry.getOffset() + offsetBase)
 								+ ENDIAN_OFFSET_SIZE);
 				attr = ext.individualIFD;
 			}
-
-			System.out.println("個別画像番号: " + attr.getMPIndividualNum());
-			System.out
-					.println("輻輳角: " + attr.getConvergenceAngle().getDouble());
-			System.out.println("基線長: " + attr.getBaselineLength().getDouble());
 		}
-
 		int jpegHead = 0;
 		int jpegHead2 = 0;
 		if (firstExt.getNumberOfMpEntry() > 0) {
@@ -184,16 +170,16 @@ public class MpoLoader {
 	 * @return
 	 * @throws IOException
 	 */
-	static BufferedImage createImage(byte[] buffer, int offset, int length)
-			throws IOException {
+	private static BufferedImage createImage(byte[] buffer, int offset,
+			int length) throws IOException {
 
 		byte[] imageByte1 = new byte[length];
 		System.arraycopy(buffer, offset, imageByte1, 0, imageByte1.length);
 		ByteArrayInputStream bis = new ByteArrayInputStream(imageByte1);
 		ImageInputStream iis = ImageIO.createImageInputStream(bis);
-		Iterator readers = (Iterator) ImageIO
+		Iterator<ImageReader> readers = ImageIO
 				.getImageReadersByFormatName("jpeg");
-		ImageReader reader = (ImageReader) (readers.next());
+		ImageReader reader = readers.next();
 		reader.setInput(iis, true);
 		return reader.read(0);
 	}

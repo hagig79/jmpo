@@ -1,5 +1,11 @@
 package jp.skr.soundwing.exif;
 
+/**
+ * バイト配列を読み込むを補助するクラス.
+ * 
+ * @author mudwell
+ * 
+ */
 public abstract class ByteArrayReader {
 	byte[] buffer;
 	int startOffset;
@@ -34,15 +40,7 @@ public abstract class ByteArrayReader {
 		this.current = newPosition;
 	}
 
-	public boolean startsWith(byte[] subarray) {
-		for (int i = 0; i < subarray.length; i++) {
-			if (buffer[i + current] != subarray[i]) {
-				return false;
-			}
-		}
-		return true;
-
-	}
+	public abstract boolean startsWith(byte[] subarray);
 
 	public void arraycopy(byte[] dest, int destPos, int length) {
 		System.arraycopy(buffer, current, dest, destPos, length);

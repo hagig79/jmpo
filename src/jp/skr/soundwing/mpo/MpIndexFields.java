@@ -63,7 +63,6 @@ public class MpIndexFields {
 					MpEntry entry = new MpEntry(reader);
 					mpf.mpEntries.add(entry);
 				}
-				System.out.println("Entry: " + mpf.mpEntries.size());
 				reader.setPosition(tmpPos);
 
 			} else if (reader.startsWith(UNIQUE_TAG)) {

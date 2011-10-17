@@ -23,10 +23,8 @@ public class MpExtensions {
 	 * @return
 	 */
 	public static MpExtensions create(byte[] fileData, int offsetBase) {
-		System.out.printf("offsetBase %x\n", offsetBase);
 		ByteArrayReader reader = createByteArrayReader(fileData, offsetBase);
 		int attrIFDOffset = getIFDOffset(reader);
-		System.out.println("indexIFDOffset:" + attrIFDOffset);
 		reader.skip(attrIFDOffset - 8);
 
 		MpAttributeFields attr = MpAttributeFields.create(reader, offsetBase);
@@ -38,11 +36,9 @@ public class MpExtensions {
 		ByteArrayReader reader = createByteArrayReader(fileData, offsetBase);
 
 		int indexIFDOffset = getIFDOffset(reader);
-		System.out.println("indexIFDOffset:" + indexIFDOffset);
 		reader.skip(indexIFDOffset - 8);
 
 		MpIndexFields indexField = MpIndexFields.create(reader, offsetBase);
-		System.out.printf("%x", offsetBase + indexField.getOffsetOfNextIFD());
 
 		reader.setPosition(offsetBase + indexField.getOffsetOfNextIFD());
 		MpAttributeFields attr = MpAttributeFields.create(reader, offsetBase);
@@ -57,10 +53,8 @@ public class MpExtensions {
 	private static ByteArrayReader createByteArrayReader(byte[] buffer,
 			int offsetBase) {
 		if ((buffer[offsetBase] & 0xff) == 0x49) {
-			System.out.println("little");
 			return new ByteArrayReaderLittleEndian(buffer, offsetBase);
 		} else {
-			System.out.println("big");
 			return new ByteArrayReaderBigEndian(buffer, offsetBase);
 
 		}
@@ -76,16 +70,6 @@ public class MpExtensions {
 
 	public boolean isFirst() {
 		return indexIFD != null;
-	}
-
-	static class MPTag {
-		byte[] tagData;
-		int dataLength;
-
-		MPTag(byte[] tag, int dataLength) {
-			this.tagData = tag;
-			this.dataLength = dataLength;
-		}
 	}
 
 	public MpEntry getMpEntry(int index) {

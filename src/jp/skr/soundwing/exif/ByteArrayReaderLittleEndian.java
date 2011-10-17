@@ -23,4 +23,14 @@ public class ByteArrayReaderLittleEndian extends ByteArrayReader {
 		return value;
 	}
 
+	@Override
+	public boolean startsWith(byte[] subarray) {
+		for (int i = 0; i < subarray.length; i++) {
+			if (buffer[i + current] != subarray[subarray.length - i - 1]) {
+				return false;
+			}
+		}
+		return true;
+
+	}
 }
