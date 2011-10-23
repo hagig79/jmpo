@@ -18,6 +18,8 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
 /**
+ * MPOファイル読み込み機能を提供する.
+ * 
  * @author mudwell
  * 
  */
@@ -27,31 +29,46 @@ public class MpoReader {
 	static final int ENDIAN_OFFSET_SIZE = 8;
 
 	/**
+	 * 指定されたFileを復号化した結果としてMpoFileを返す.
+	 * 
 	 * @param input
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
+	 *             読み込み中にエラーが発生した場合
 	 */
 	public static MpoFile read(File input) throws FileNotFoundException,
 			IOException {
-		return read(new FileInputStream(input));
+		InputStream in = new FileInputStream(input);
+		MpoFile mpoFile = read(in);
+		in.close();
+		return mpoFile;
 	}
 
 	/**
+	 * 指定されたURLを復号化した結果としてMpoFileを返す.
+	 * 
 	 * @param input
 	 * @return
 	 * @throws FileNotFoundException
 	 * @throws IOException
+	 *             読み込み中にエラーが発生した場合
 	 */
 	public static MpoFile read(URL input) throws FileNotFoundException,
 			IOException {
-		return read(new FileInputStream(input.getPath()));
+		InputStream in = new FileInputStream(input.getPath());
+		MpoFile mpoFile = read(in);
+		in.close();
+		return mpoFile;
 	}
 
 	/**
+	 * 指定されたInputStreamを復号化した結果としてMpoFileを返す.
+	 * 
 	 * @param stream
 	 * @return
 	 * @throws IOException
+	 *             読み込み中にエラーが発生した場合
 	 */
 	public static MpoFile read(InputStream stream) throws IOException {
 		// バイナリでファイルをすべて読み込む
@@ -77,9 +94,9 @@ public class MpoReader {
 			if (i == 0) {
 				exts.add(firstExt);
 			} else {
-				MpExtension ext = MpExtension.create(fileData,
-						findAPP2Tag(fileData, entry.getOffset() + offsetBase)
-								+ ENDIAN_OFFSET_SIZE);
+				MpExtension ext = MpExtension.create(fileData, findAPP2Tag(
+						fileData, entry.getOffset() + offsetBase)
+						+ ENDIAN_OFFSET_SIZE);
 				exts.add(ext);
 			}
 		}
@@ -191,7 +208,4 @@ public class MpoReader {
 				| ((buffer[offset + 3] & 0xff));
 	}
 
-	// public static int getShort(byte[] buffer, int offset) {
-	// return ((buffer[offset] & 0xff) << 8) | ((buffer[offset + 1] & 0xff));
-	// }
 }
