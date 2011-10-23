@@ -1,5 +1,5 @@
 package jp.skr.soundwing.mpo;
 
-public class MPIndexFieldsTest {
+public class MpIndexFieldsTest {
 
 }

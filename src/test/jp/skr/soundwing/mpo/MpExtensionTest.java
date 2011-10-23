@@ -8,14 +8,14 @@ import java.io.IOException;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class MPExtensionsTest {
+public class MpExtensionTest {
 	@Test
 	public void testAnalyzeFirstExtension() throws Exception {
 		// setup
 		byte[] fileData = readFile();
-		int app2 = MpoLoader.findAPP2Tag(fileData, 0);
+		int app2 = MpoReader.findAPP2Tag(fileData, 0);
 		// exercise
-		MpExtensions ext = MpExtensions.create(fileData, app2 + 8);
+		MpExtension ext = MpExtension.create(fileData, app2 + 8);
 		// verify
 		assertNotNull(ext);
 	}
@@ -24,33 +24,38 @@ public class MPExtensionsTest {
 		String path = "testdata/HNI_0021.MPO.jpg";
 		File file = new File(path);
 		FileInputStream is = new FileInputStream(file);
-		byte[] fileData = MpoLoader.readFile(is);
+		byte[] fileData = MpoReader.readFile(is);
 		return fileData;
 	}
-	
+
 	@Test
 	public void testFirstExtension() throws Exception {
 		// setup
 		byte[] fileData = readFile();
-		int app2 = MpoLoader.findAPP2Tag(fileData, 0);
-		MpExtensions ext = MpExtensions.createFirst(fileData, app2 + 8);
+		int app2 = MpoReader.findAPP2Tag(fileData, 0);
+		MpExtension ext = MpExtension.createFirst(fileData, app2 + 8);
 		// exercise
 		boolean actual = ext.isFirst();
 		// verify
 		assertTrue(actual);
-		
+
 	}
-	
+
 	@Test
 	public void testMPIndividualNum() throws Exception {
 		// setup
 		byte[] fileData = readFile();
-		int app2 = MpoLoader.findAPP2Tag(fileData, 0);
-		MpExtensions ext = MpExtensions.create(fileData, app2 + 8);
+		int app2 = MpoReader.findAPP2Tag(fileData, 0);
+		MpExtension ext = MpExtension.create(fileData, app2 + 8);
 		// exercise
 		int num = ext.individualIFD.getMPIndividualNum();
 		// verify
 		assertNotSame(num, -1);
+	}
+
+	@Test
+	public void testGetAttributeIfd() throws Exception {
+
 	}
 
 }

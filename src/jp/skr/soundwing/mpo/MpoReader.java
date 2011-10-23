@@ -21,7 +21,7 @@ import javax.imageio.stream.ImageInputStream;
  * @author mudwell
  * 
  */
-public class MpoLoader {
+public class MpoReader {
 
 	private static final int BUFFER_SIZE = 1024;
 	static final int ENDIAN_OFFSET_SIZE = 8;
@@ -65,24 +65,22 @@ public class MpoLoader {
 		// オフセットの基準点
 		int offsetBase = app2 + ENDIAN_OFFSET_SIZE;
 
-		MpExtensions firstExt = MpExtensions.createFirst(fileData, offsetBase);
+		MpExtension firstExt = MpExtension.createFirst(fileData, offsetBase);
 
 		List<MpEntry> entries = new ArrayList<MpEntry>();
+		List<MpExtension> exts = new ArrayList<MpExtension>();
 
-		for (int i = 0; i < firstExt.getMPIndexIFD().getNumberOfImages(); i++) {
+		for (int i = 0; i < firstExt.getMpIndexIfd().getNumberOfImages(); i++) {
 
 			MpEntry entry = firstExt.getMpEntry(i);
 			entries.add(entry);
-			MpAttributeFields attr;
 			if (i == 0) {
-				attr = firstExt.individualIFD;
-				// attr = MPAttributeFields.create(fileData,
-				// firstExt.indexIFD.getOffsetOfNextIFD() + offsetBase);
+				exts.add(firstExt);
 			} else {
-				MpExtensions ext = MpExtensions.create(fileData,
+				MpExtension ext = MpExtension.create(fileData,
 						findAPP2Tag(fileData, entry.getOffset() + offsetBase)
 								+ ENDIAN_OFFSET_SIZE);
-				attr = ext.individualIFD;
+				exts.add(ext);
 			}
 		}
 		int jpegHead = 0;
@@ -94,12 +92,14 @@ public class MpoLoader {
 			jpegHead2 = findJpegHead(fileData, 10);
 		}
 
-		final BufferedImage image1 = createImage(fileData, jpegHead, jpegHead2
+		BufferedImage image1 = createImage(fileData, jpegHead, jpegHead2
 				- jpegHead);
-		final BufferedImage image2 = createImage(fileData, jpegHead2,
-				fileData.length - jpegHead2);
+		MpoImage imageLeft = new MpoImage(image1, firstExt);
+		BufferedImage image2 = createImage(fileData, jpegHead2, fileData.length
+				- jpegHead2);
+		MpoImage imageRight = new MpoImage(image2, exts.get(1));
 
-		return new MpoFile(image1, image2);
+		return new MpoFile(imageLeft, imageRight);
 	}
 
 	static byte[] readFile(InputStream stream) throws IOException {

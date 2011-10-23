@@ -9,7 +9,7 @@ import jp.skr.soundwing.exif.ByteArrayReader;
  * 
  */
 public class MpEntry {
-	private static final int TYPE_MASK = 0x0fff;
+	private static final int TYPE_MASK = 0x00ffffff;
 	/**
 	 * 個別画像種別管理情報.
 	 */
@@ -28,13 +28,12 @@ public class MpEntry {
 	private int image1EntryNumber;
 	private int image2EntryNumber;
 
-
-	
 	public MpEntry(ByteArrayReader reader) {
 		info = reader.getInt();
 		size = reader.getInt();
 		offset = reader.getInt();
-		reader.getInt();
+		image1EntryNumber = reader.getShort();
+		image2EntryNumber = reader.getShort();
 	}
 
 	/**
@@ -62,5 +61,14 @@ public class MpEntry {
 	 */
 	public int getTypeCode() {
 		return info & TYPE_MASK;
+	}
+
+	/**
+	 * 個別画像種別管理情報を返す.
+	 * 
+	 * @return 個別画像種別管理情報
+	 */
+	public int getIndividualImageAttribute() {
+		return info;
 	}
 }

@@ -27,4 +27,12 @@ public class Rational {
 	public double getDouble() {
 		return numerator / (double) decominator;
 	}
+
+	public int getNumerator() {
+		return numerator;
+	}
+
+	public int getDecominator() {
+		return decominator;
+	}
 }

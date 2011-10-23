@@ -9,7 +9,7 @@ import java.io.IOException;
 import javax.swing.JFrame;
 
 import jp.skr.soundwing.mpo.MpoFile;
-import jp.skr.soundwing.mpo.MpoLoader;
+import jp.skr.soundwing.mpo.MpoReader;
 
 public class Test {
 	public static void main(String[] args) {
@@ -18,7 +18,7 @@ public class Test {
 		FileInputStream is = null;
 		try {
 			is = new FileInputStream(file);
-			final MpoFile image = MpoLoader.read(is);
+			final MpoFile image = MpoReader.read(is);
 			final int width = image.getLeftImage().getBufferedImage()
 					.getWidth();
 			int height = image.getLeftImage().getBufferedImage().getHeight();
@@ -28,11 +28,7 @@ public class Test {
 			int[] pixels2 = new int[width * height];
 			image.getRightImage().getBufferedImage()
 					.getRGB(0, 0, width, height, pixels2, 0, width);
-			//
-			// int[] out = calcZ(pixels1, pixels2, 640);
-			// final BufferedImage image3 = new BufferedImage(width, height,
-			// BufferedImage.TYPE_INT_ARGB);
-			// image3.setRGB(0, 0, width, height,out, 0, width);
+
 			int windowX = 200;
 			int windowY = 100;
 			int windowWidth = 50;

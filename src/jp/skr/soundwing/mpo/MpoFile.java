@@ -1,6 +1,5 @@
 package jp.skr.soundwing.mpo;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,11 +14,6 @@ import java.util.List;
 public class MpoFile {
 
 	private List<MpoImage> images;
-
-	MpoFile(BufferedImage left, BufferedImage right) {
-		this(new MpoImage[] { new MpoImage(left, null),
-				new MpoImage(right, null) });
-	}
 
 	/**
 	 * @param left

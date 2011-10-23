@@ -27,7 +27,7 @@ public class MpAttributeFields {
 	byte[] count;
 	byte[] version;
 	int mpIndividualNum;
-	byte[] baseViewpointNum;
+	int baseViewpointNum;
 	private Rational convergenceAngle;
 	private Rational baselineLength;
 	private Rational axisDistanceZ;
@@ -50,9 +50,8 @@ public class MpAttributeFields {
 				reader.skip(8);
 				mpf.mpIndividualNum = reader.getInt();
 			} else if (reader.startsWith(BASE_VIEWPOINT_NUM_TAG)) {
-				mpf.baseViewpointNum = new byte[BASE_VIEWPOINT_NUM_LENGTH];
-				reader.arraycopy(mpf.baseViewpointNum, 0,
-						mpf.baseViewpointNum.length);
+				reader.skip(8);
+				mpf.baseViewpointNum = reader.getInt();
 			} else if (reader.startsWith(CONVERGENCE_ANGLE_TAG)) {
 				reader.skip(8);
 				int offset = reader.getInt();
@@ -126,5 +125,9 @@ public class MpAttributeFields {
 
 	public Rational getAxisDistanceZ() {
 		return axisDistanceZ;
+	}
+
+	public int getBaseViewpointNum() {
+		return baseViewpointNum;
 	}
 }
