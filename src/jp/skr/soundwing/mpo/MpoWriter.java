@@ -4,7 +4,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
@@ -15,68 +17,115 @@ public class MpoWriter {
 	private static final int MP_HEADER_LENGTH = 8;
 	private static final byte[] SOI = { (byte) 0xff, (byte) 0xd8 };
 
+	/**
+	 * MPOファイルをストリームに書き込む.
+	 * 
+	 * @param mpoFile
+	 * @param stream
+	 * @throws IOException
+	 */
 	public static void write(MpoFile mpoFile, OutputStream stream)
 			throws IOException {
 		int[] dataOffset = new int[2];// 個別画像データのオフセット
-		dataOffset[0] = 0; // 先頭画像は0
 		byte[][] imageData = new byte[2][];
-		imageData[0] = convertByteArray(mpoFile.getLeftImage()
-				.getBufferedImage());
-		deleteSoi(imageData[0]);
-		imageData[1] = convertByteArray(mpoFile.getRightImage()
-				.getBufferedImage());
-		deleteSoi(imageData[1]);
 		int[] mpIndividualIfdSize = new int[2];
-		mpIndividualIfdSize[0] = calcMpIndividualIfdSize(mpoFile.getLeftImage()
-				.getAttributeIfd(), true);
-		mpIndividualIfdSize[1] = calcMpIndividualIfdSize(mpoFile
-				.getRightImage().getAttributeIfd(), false);
-		dataOffset[1] = MP_HEADER_LENGTH
-				+ calcMpIndexIfdSize(mpoFile.getLeftImage().getIndexIfd())
-				+ mpIndividualIfdSize[0] + imageData[0].length;
-
 		int[] imageSize = new int[2];
-		imageSize[0] = SOI.length + 6 + MP_HEADER_LENGTH
-				+ calcMpIndexIfdSize(mpoFile.getLeftImage().getIndexIfd())
-				+ mpIndividualIfdSize[0] + imageData[0].length;
-		imageSize[1] = SOI.length + 6 + MP_HEADER_LENGTH
-				+ mpIndividualIfdSize[1] + imageData[1].length;
+		
+		mpoFile.getMpoImage(0).getIndexIfd().setNumberOfImages(mpoFile.getNumberOfImages());
 
-		stream.write(SOI);
-		writeApp2Header(stream, 2 + 4 + MP_HEADER_LENGTH
-				+ calcMpIndexIfdSize(mpoFile.getLeftImage().getIndexIfd())
-				+ mpIndividualIfdSize[0]);
-		writeMpHeader(stream, 8);
-		writeIndexIfd(stream, mpoFile.getLeftImage().getIndexIfd(), imageSize,
-				dataOffset);
-		writeIndividualIfd(stream, mpoFile.getLeftImage().getAttributeIfd(),
-				8 + calcMpIndexIfdSize(mpoFile.getLeftImage().getIndexIfd()),
-				true);
-		stream.write(imageData[0]);
+		// バイト配列に変換する
+		for (int i = 0; i < mpoFile.getNumberOfImages(); i++) {
+			MpoImage mpoImage = mpoFile.getMpoImage(i);
+			imageData[i] = convertByteArray(mpoImage.getBufferedImage());
+			deleteSoi(imageData[i]);
+			if (i == 0) {
+				mpIndividualIfdSize[i] = calcMpIndividualIfdSize(
+						mpoImage.getAttributeIfd(), true);
+				dataOffset[i] = 0; // 先頭画像は0
+				imageSize[i] = SOI.length + 6 + MP_HEADER_LENGTH
+						+ calcMpIndexIfdSize(mpoFile.getNumberOfImages())
+						+ mpIndividualIfdSize[i] + imageData[i].length;
+			} else if (i == 1) {
+				mpIndividualIfdSize[i] = calcMpIndividualIfdSize(
+						mpoImage.getAttributeIfd(), false);
+				dataOffset[i] = MP_HEADER_LENGTH
+						+ calcMpIndexIfdSize(mpoFile.getNumberOfImages())
+						+ mpIndividualIfdSize[i - 1] + imageData[i - 1].length;
+				imageSize[i] = SOI.length + 6 + MP_HEADER_LENGTH
+						+ mpIndividualIfdSize[i] + imageData[i].length;
+			} else {
+				mpIndividualIfdSize[i] = calcMpIndividualIfdSize(
+						mpoImage.getAttributeIfd(), false);
+				dataOffset[i] = MP_HEADER_LENGTH + mpIndividualIfdSize[i - 1]
+						+ imageData[i - 1].length;
+				imageSize[i] = SOI.length + 6 + MP_HEADER_LENGTH
+						+ mpIndividualIfdSize[i] + imageData[i].length;
+			}
+		}
 
-		stream.write(SOI);
-		writeApp2Header(stream, 2 + 4 + MP_HEADER_LENGTH
-				+ mpIndividualIfdSize[1]);
-		writeMpHeader(stream, 8);
-		writeIndividualIfd(stream, mpoFile.getRightImage().getAttributeIfd(),
-				8, false);
-		stream.write(imageData[1]);
+		// データの更新
+		// MPエントリを作成する
+		List<MpEntry> entries = new ArrayList<MpEntry>();
+		for (int i = 0; i < mpoFile.getNumberOfImages(); i++) {
+			entries.add(new MpEntry(0x020002, imageSize[i], dataOffset[i], 0, 0));
+		}
+		mpoFile.getMpoImage(0).getIndexIfd().setEntries(entries.toArray(new MpEntry[0]));
+
+		// ストリームに書き込む
+		for (int i = 0; i < mpoFile.getNumberOfImages(); i++) {
+			stream.write(SOI);
+			if (i == 0) {
+				writeApp2Header(stream, 2 + 4 + MP_HEADER_LENGTH
+						+ calcMpIndexIfdSize(mpoFile.getNumberOfImages())
+						+ mpIndividualIfdSize[i]);
+			} else {
+				writeApp2Header(stream, 2 + 4 + MP_HEADER_LENGTH
+						+ mpIndividualIfdSize[i]);
+			}
+			writeMpHeader(stream, 8);
+			if (i == 0) {
+				writeIndexIfd(stream, mpoFile.getMpoImage(i).getIndexIfd(),
+						imageSize, dataOffset);
+				writeIndividualIfd(stream, mpoFile.getMpoImage(i)
+						.getAttributeIfd(),
+						8 + calcMpIndexIfdSize(mpoFile.getNumberOfImages()),
+						true);
+			} else {
+				writeIndividualIfd(stream, mpoFile.getMpoImage(i)
+						.getAttributeIfd(), 8, false);
+			}
+			stream.write(imageData[i]);
+		}
 
 	}
 
+	/**
+	 * SOIマーカーを削除する
+	 * 
+	 * @param jpegData
+	 */
 	static void deleteSoi(byte[] jpegData) {
 		System.arraycopy(jpegData, 2, jpegData, 0, jpegData.length - 2);
 	}
 
+	/**
+	 * インデックスIFDをストリームに書き込む.
+	 * 
+	 * @param stream
+	 * @param indexIfd
+	 * @param imageSize
+	 * @param dataOffset
+	 * @throws IOException
+	 */
 	private static void writeIndexIfd(OutputStream stream,
 			MpIndexFields indexIfd, int[] imageSize, int[] dataOffset)
 			throws IOException {
-		write(stream, (short) 3);
+		writeShort(stream, (short) 3);
 		writeVersion(stream);
 		writeNumberOfImages(stream, indexIfd.getNumberOfImages());
 		int valueOffset = MP_HEADER_LENGTH + 2 + 12 * 3 + 4;
 		writeOffsetOfMpEntry(stream, indexIfd.getNumberOfImages(), valueOffset);
-		write(stream, valueOffset + 16 * indexIfd.getNumberOfImages());
+		writeInt(stream, valueOffset + 16 * indexIfd.getNumberOfImages());
 		for (int i = 0; i < indexIfd.getNumberOfImages(); i++) {
 			writeMpEntry(stream, indexIfd.getMpEntry(i), imageSize[i],
 					dataOffset[i]);
@@ -86,7 +135,7 @@ public class MpoWriter {
 	private static void writeIndividualIfd(OutputStream stream,
 			MpAttributeFields attributeIfd, int offset, boolean b)
 			throws IOException {
-		write(stream, (short) 3);
+		writeShort(stream, (short) 3);
 		if (!b) {
 			writeVersion(stream);
 		}
@@ -101,80 +150,85 @@ public class MpoWriter {
 		writeBaseViewPoint(stream, attributeIfd.getBaseViewpointNum());
 		writeOffsetOfConvergenceAngle(stream, valueOffset);
 		writeOffsetOfBaselineLength(stream, valueOffset + 4 + 8);
-		write(stream, 0);
+		writeInt(stream, 0);
 		writeConvergenceAngle(stream, attributeIfd.getConvergenceAngle());
 		writeBaselineLength(stream, attributeIfd.getBaselineLength());
 	}
 
+	/**
+	 * @param stream
+	 * @param convergenceAngle
+	 * @throws IOException
+	 */
 	private static void writeConvergenceAngle(OutputStream stream,
 			Rational convergenceAngle) throws IOException {
-		write(stream, convergenceAngle.getNumerator());
-		write(stream, convergenceAngle.getDecominator());
+		writeInt(stream, convergenceAngle.getNumerator());
+		writeInt(stream, convergenceAngle.getDecominator());
 	}
 
 	private static void writeOffsetOfConvergenceAngle(OutputStream stream, int i)
 			throws IOException {
 		stream.write(0xb2);
 		stream.write(0x05);
-		write(stream, TYPE_TAG.SRATIONAL.getValue());
-		write(stream, 1);
-		write(stream, i);
+		writeShort(stream, TYPE_TAG.SRATIONAL.getValue());
+		writeInt(stream, 1);
+		writeInt(stream, i);
 	}
 
 	private static void writeOffsetOfBaselineLength(OutputStream stream, int i)
 			throws IOException {
 		stream.write(0xb2);
 		stream.write(0x06);
-		write(stream, TYPE_TAG.RATIONAL.getValue());
-		write(stream, 1);
-		write(stream, i);
+		writeShort(stream, TYPE_TAG.RATIONAL.getValue());
+		writeInt(stream, 1);
+		writeInt(stream, i);
 	}
 
 	private static void writeBaselineLength(OutputStream stream,
 			Rational baselineLength) throws IOException {
-		write(stream, baselineLength.getNumerator());
-		write(stream, baselineLength.getDecominator());
+		writeInt(stream, baselineLength.getNumerator());
+		writeInt(stream, baselineLength.getDecominator());
 	}
 
 	private static void writeBaseViewPoint(OutputStream stream,
 			int baseViewpointNum) throws IOException {
 		stream.write(0xb2);
 		stream.write(0x04);
-		write(stream, TYPE_TAG.LONG.getValue());
-		write(stream, 1);
-		write(stream, baseViewpointNum);
+		writeShort(stream, TYPE_TAG.LONG.getValue());
+		writeInt(stream, 1);
+		writeInt(stream, baseViewpointNum);
 	}
 
 	private static void writeIndividualNum(OutputStream stream,
 			int mpIndividualNum) throws IOException {
 		stream.write(0xb1);
 		stream.write(0x01);
-		write(stream, TYPE_TAG.LONG.getValue());
-		write(stream, 1);
-		write(stream, mpIndividualNum);
+		writeShort(stream, TYPE_TAG.LONG.getValue());
+		writeInt(stream, 1);
+		writeInt(stream, mpIndividualNum);
 	}
 
-	private static void writeApp2Header(OutputStream stream, int i)
+	private static void writeApp2Header(OutputStream stream, int lengthOfApp2)
 			throws IOException {
 		stream.write(0xff);
 		stream.write(0xe2);
-		write(stream, (short) i);
+		writeShort(stream, (short) lengthOfApp2);
 		stream.write('M');
 		stream.write('P');
 		stream.write('F');
 		stream.write(0x00);
 	}
 
-	private static void writeMpHeader(OutputStream stream, int i)
+	private static void writeMpHeader(OutputStream stream, int offset)
 			throws IOException {
 		stream.write(0x4d);
 		stream.write(0x4d);
 		stream.write(0x00);
 		stream.write(0x2a);
-		stream.write(i >> 24);
-		stream.write((i >> 16) & 0xff);
-		stream.write((i >> 8) & 0xff);
-		stream.write(i & 0xff);
+		stream.write(offset >> 24);
+		stream.write((offset >> 16) & 0xff);
+		stream.write((offset >> 8) & 0xff);
+		stream.write(offset & 0xff);
 	}
 
 	static byte[] convertByteArray(BufferedImage image) throws IOException {
@@ -192,12 +246,12 @@ public class MpoWriter {
 		return baos.toByteArray();
 	}
 
-	static int calcMpIndexIfdSize(MpIndexFields ifd) {
+	static int calcMpIndexIfdSize(int numberOfImages) {
 		int size = 2;
 		size += 12; // バージョン
 		size += 12; // 記録画像数
 		size += 12; // MPエントリー
-		size += ifd.getNumberOfImages() * 16;
+		size += numberOfImages * 16;
 		size += 4;
 		return size;
 	}
@@ -213,19 +267,19 @@ public class MpoWriter {
 
 	private static void writeMpEntry(OutputStream stream, MpEntry mpEntry,
 			int size, int offset) throws IOException {
-		write(stream, mpEntry.getIndividualImageAttribute());
-		write(stream, size);
-		write(stream, offset);
-		write(stream, (short) 0);
-		write(stream, (short) 0);
+		writeInt(stream, mpEntry.getIndividualImageAttribute());
+		writeInt(stream, size);
+		writeInt(stream, offset);
+		writeShort(stream, (short) 0);
+		writeShort(stream, (short) 0);
 	}
 
-	static void write(OutputStream os, short value) throws IOException {
+	static void writeShort(OutputStream os, short value) throws IOException {
 		os.write(value >> 8);
 		os.write(value & 0xff);
 	}
 
-	static void write(OutputStream os, int value) throws IOException {
+	static void writeInt(OutputStream os, int value) throws IOException {
 		os.write(value >> 24);
 		os.write(value >> 16);
 		os.write(value >> 8);
@@ -236,8 +290,8 @@ public class MpoWriter {
 	static void writeVersion(OutputStream stream) throws IOException {
 		stream.write(0xb0);
 		stream.write(0x00);
-		write(stream, TYPE_TAG.UNDEFINED.getValue());
-		write(stream, 4);
+		writeShort(stream, TYPE_TAG.UNDEFINED.getValue());
+		writeInt(stream, 4);
 		stream.write('0');
 		stream.write('1');
 		stream.write('0');
@@ -248,9 +302,9 @@ public class MpoWriter {
 			throws IOException {
 		stream.write(0xb0);
 		stream.write(0x01);
-		write(stream, TYPE_TAG.LONG.getValue());
-		write(stream, 1);
-		write(stream, num);
+		writeShort(stream, TYPE_TAG.LONG.getValue());
+		writeInt(stream, 1);
+		writeInt(stream, num);
 
 	}
 
@@ -258,9 +312,9 @@ public class MpoWriter {
 			int valueOffset) throws IOException {
 		stream.write(0xb0);
 		stream.write(0x02);
-		write(stream, TYPE_TAG.UNDEFINED.getValue());
-		write(stream, 16 * numOfMpEntry);
-		write(stream, valueOffset);
+		writeShort(stream, TYPE_TAG.UNDEFINED.getValue());
+		writeInt(stream, 16 * numOfMpEntry);
+		writeInt(stream, valueOffset);
 	}
 
 	enum TYPE_TAG {

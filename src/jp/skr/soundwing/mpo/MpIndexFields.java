@@ -1,6 +1,7 @@
 package jp.skr.soundwing.mpo;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import jp.skr.soundwing.exif.ByteArrayReader;
@@ -112,7 +113,7 @@ public class MpIndexFields {
 	}
 
 	public void setNumberOfImages(int int1) {
-
+		this.numberOfImages = int1;
 	}
 
 	public boolean isFirst() {
@@ -127,5 +128,10 @@ public class MpIndexFields {
 	public int getNumberOfMpEntry() {
 
 		return mpEntries.size();
+	}
+
+	public void setEntries(MpEntry[] array) {
+		mpEntries.clear();
+		mpEntries.addAll(Arrays.asList(array));
 	}
 }

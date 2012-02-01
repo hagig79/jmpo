@@ -36,6 +36,14 @@ public class MpEntry {
 		image2EntryNumber = reader.getShort();
 	}
 
+	public MpEntry(int info, int size, int offset, int entryNo1, int entryNo2) {
+		this.info = info;
+		this.size = size;
+		this.offset = offset;
+		this.image1EntryNumber = entryNo1;
+		this.image1EntryNumber = entryNo2;
+	}
+
 	/**
 	 * @return
 	 */

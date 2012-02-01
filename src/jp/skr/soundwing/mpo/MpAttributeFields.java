@@ -113,6 +113,10 @@ public class MpAttributeFields {
 	public Rational getBaselineLength() {
 		return baselineLength;
 	}
+	
+	public void setBaselineLength(Rational rational) {
+		this.baselineLength = rational;
+	}
 
 	public void setConvergenceAngle(Rational rational) {
 		this.convergenceAngle = rational;

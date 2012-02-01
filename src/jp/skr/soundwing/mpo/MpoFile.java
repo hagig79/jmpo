@@ -31,6 +31,9 @@ public class MpoFile {
 		for (MpoImage image : images) {
 			this.images.add(image);
 		}
+		for (int i = 1; i < images.length; i++) {
+			images[i].setIndexIfd(null);
+		}
 	}
 
 	/**
@@ -54,5 +57,13 @@ public class MpoFile {
 	 */
 	public int getNumberOfImages() {
 		return images.size();
+	}
+
+	/**
+	 * @param i
+	 * @return
+	 */
+	public MpoImage getMpoImage(int i) {
+		return images.get(i);
 	}
 }
